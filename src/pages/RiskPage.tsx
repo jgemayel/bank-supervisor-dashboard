@@ -46,10 +46,10 @@ export function RiskPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Risk Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-900/50 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-900/50 p-4 card-hover">
           <div className="flex items-center gap-2 mb-2">
             <ShieldAlert className="h-4 w-4 text-red-600" />
             <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase">
@@ -64,7 +64,7 @@ export function RiskPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-900/50 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-900/50 p-4 card-hover">
           <div className="flex items-center gap-2 mb-2">
             <FileWarning className="h-4 w-4 text-red-600" />
             <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase">
@@ -79,7 +79,7 @@ export function RiskPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-900/50 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-900/50 p-4 card-hover">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <span className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase">
@@ -94,7 +94,7 @@ export function RiskPage() {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-purple-200 dark:border-purple-900/50 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-purple-200 dark:border-purple-900/50 p-4 card-hover">
           <div className="flex items-center gap-2 mb-2">
             <Database className="h-4 w-4 text-purple-600" />
             <span className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase">
@@ -136,7 +136,7 @@ export function RiskPage() {
       {/* Audit Tab */}
       {activeTab === "audit" && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Audit Opinions by Bank (ordered by asset size)
             </h3>
@@ -207,7 +207,7 @@ export function RiskPage() {
           </div>
 
           {/* Detailed Audit Findings */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Audit Findings Detail
             </h3>
@@ -267,7 +267,7 @@ export function RiskPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Affected Banks
             </h3>
@@ -355,7 +355,7 @@ export function RiskPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Missing Prudential Data (Basel III Requirements)
             </h3>

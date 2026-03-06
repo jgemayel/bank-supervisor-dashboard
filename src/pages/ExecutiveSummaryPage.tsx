@@ -429,7 +429,7 @@ export function ExecutiveSummaryPage() {
   const staleReportingBanks = banks.filter((b) => b.reportingPeriod === "YE 2023");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center gap-3">
         <FileText className="h-8 w-8 text-blue-600" />

@@ -89,3 +89,29 @@ export function calculatePercentile(values: number[], percentile: number): numbe
   const index = Math.ceil((percentile / 100) * sorted.length) - 1;
   return sorted[Math.max(0, index)];
 }
+
+/** Shared Recharts tooltip style */
+export const CHART_TOOLTIP_STYLE = {
+  borderRadius: "12px",
+  border: "none",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.12)",
+  fontSize: "12px",
+  padding: "8px 12px",
+  backgroundColor: "white",
+};
+
+/** Shared Recharts grid style */
+export const CHART_GRID_STYLE = "#e2e8f0";
+
+/** Chart color palette - banking supervision themed */
+export const CHART_COLORS = {
+  primary: "#3b82f6",
+  success: "#10b981",
+  warning: "#f59e0b",
+  danger: "#ef4444",
+  info: "#6366f1",
+  accent: "#8b5cf6",
+  conventional: "#3b82f6",
+  islamic: "#10b981",
+  microfinance: "#f59e0b",
+};

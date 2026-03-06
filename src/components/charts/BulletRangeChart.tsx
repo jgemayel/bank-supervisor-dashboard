@@ -140,15 +140,15 @@ function MetricRow({
     <div key={metric.label} className="mb-6">
       <div className="flex items-center justify-between mb-2">
         <div className="flex-shrink-0">
-          <p className="text-xs font-medium text-gray-700">{metric.label}</p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs font-medium text-gray-700 dark:text-slate-300">{metric.label}</p>
+          <p className="text-xs text-gray-500 dark:text-slate-500 mt-0.5">
             Basel: {metric.baselStandard} | Best: {metric.bestPractice}
           </p>
         </div>
         <div className="flex-shrink-0 ml-4">
           <p className={cn('text-sm font-bold', statusColor)}>
             {metric.value.toFixed(2)}
-            <span className="text-gray-600 text-xs font-normal ml-1">
+            <span className="text-gray-600 dark:text-slate-400 text-xs font-normal ml-1">
               {metric.unit}
             </span>
           </p>
@@ -156,10 +156,10 @@ function MetricRow({
       </div>
 
       {/* Bullet Range Bar */}
-      <div className="relative w-full bg-gray-100 rounded h-8 overflow-hidden shadow-sm">
+      <div className="relative w-full bg-gray-100 dark:bg-slate-700 rounded h-8 overflow-hidden shadow-sm">
         {/* Good Zone */}
         <div
-          className="absolute h-full bg-green-100 border-r border-green-200"
+          className="absolute h-full bg-green-100 dark:bg-green-900 border-r border-green-200 dark:border-green-700"
           style={{
             left: `${goodStart}%`,
             width: `${goodEnd - goodStart}%`,
@@ -168,7 +168,7 @@ function MetricRow({
 
         {/* Caution Zone */}
         <div
-          className="absolute h-full bg-amber-100 border-r border-amber-200"
+          className="absolute h-full bg-amber-100 dark:bg-amber-900 border-r border-amber-200 dark:border-amber-700"
           style={{
             left: `${cautionStart}%`,
             width: `${cautionEnd - cautionStart}%`,
@@ -177,7 +177,7 @@ function MetricRow({
 
         {/* Danger Zone */}
         <div
-          className="absolute h-full bg-red-100 border-r border-red-200"
+          className="absolute h-full bg-red-100 dark:bg-red-900 border-r border-red-200 dark:border-red-700"
           style={{
             left: `${dangerStart}%`,
             width: `${dangerEnd - dangerStart}%`,
@@ -186,7 +186,7 @@ function MetricRow({
 
         {/* Sector Average Dashed Line */}
         <div
-          className="absolute top-0 bottom-0 w-px border-l-2 border-dashed border-gray-400"
+          className="absolute top-0 bottom-0 w-px border-l-2 border-dashed border-gray-400 dark:border-slate-500"
           style={{
             left: `${sectorPercent}%`,
           }}
@@ -195,7 +195,7 @@ function MetricRow({
 
         {/* Bank Value Marker (solid dot) */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-gray-800 rounded-full shadow-md border-2 border-white z-10"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-gray-800 dark:bg-slate-200 rounded-full shadow-md border-2 border-white dark:border-slate-800 z-10"
           style={{
             left: `${valuePercent}%`,
           }}
@@ -220,13 +220,13 @@ export function BulletRangeChart({
   const range = calculateRange(metrics);
 
   return (
-    <div className="w-full bg-white rounded-lg border border-gray-200 p-6">
+    <div className="w-full bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-6">
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
           Prudential Compliance - {bankName}
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
           Regulatory metrics performance comparison with sector averages
         </p>
       </div>
@@ -239,31 +239,31 @@ export function BulletRangeChart({
       </div>
 
       {/* Legend */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <p className="text-xs font-medium text-gray-700 mb-3">Legend:</p>
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+        <p className="text-xs font-medium text-gray-700 dark:text-slate-300 mb-3">Legend:</p>
         <div className="grid grid-cols-2 gap-4 md:gap-8">
           {/* Markers */}
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-gray-800 rounded-full" />
-            <span className="text-xs text-gray-600">Bank Value</span>
+            <div className="w-3 h-3 bg-gray-800 dark:bg-slate-200 rounded-full" />
+            <span className="text-xs text-gray-600 dark:text-slate-400">Bank Value</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-0.5 h-4 border-l-2 border-dashed border-gray-400" />
-            <span className="text-xs text-gray-600">Sector Average</span>
+            <div className="w-0.5 h-4 border-l-2 border-dashed border-gray-400 dark:border-slate-500" />
+            <span className="text-xs text-gray-600 dark:text-slate-400">Sector Average</span>
           </div>
 
           {/* Zone Colors */}
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-100 border border-green-200 rounded" />
-            <span className="text-xs text-gray-600">Good Zone</span>
+            <div className="w-4 h-4 bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded" />
+            <span className="text-xs text-gray-600 dark:text-slate-400">Good Zone</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-amber-100 border border-amber-200 rounded" />
-            <span className="text-xs text-gray-600">Caution Zone</span>
+            <div className="w-4 h-4 bg-amber-100 dark:bg-amber-900 border border-amber-200 dark:border-amber-700 rounded" />
+            <span className="text-xs text-gray-600 dark:text-slate-400">Caution Zone</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-100 border border-red-200 rounded" />
-            <span className="text-xs text-gray-600">Danger Zone</span>
+            <div className="w-4 h-4 bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded" />
+            <span className="text-xs text-gray-600 dark:text-slate-400">Danger Zone</span>
           </div>
         </div>
       </div>

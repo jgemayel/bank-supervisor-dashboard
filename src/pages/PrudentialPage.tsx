@@ -31,9 +31,9 @@ export function PrudentialPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Benchmark Reference Cards */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
         <div className="flex items-center gap-2 mb-4">
           <ShieldCheck className="h-5 w-5 text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -166,7 +166,7 @@ export function PrudentialPage() {
       </div>
 
       {/* Bank Compliance Summary Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Compliance Summary (All Metrics)
         </h3>

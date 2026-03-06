@@ -124,7 +124,7 @@ export function ProfilesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Bank Selector */}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
         <div className="flex items-center gap-4 flex-wrap">

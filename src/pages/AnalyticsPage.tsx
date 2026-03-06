@@ -2,7 +2,7 @@ import { useState } from "react";
 import { banks, sectorAggregates } from "../data/banks";
 import { MetricBarChart } from "../components/charts/MetricBarChart";
 import { ScatterPlotChart } from "../components/charts/ScatterPlotChart";
-import { calculateHHI, cn } from "../lib/utils";
+import { calculateHHI, cn, CHART_TOOLTIP_STYLE } from "../lib/utils";
 import type { BankData } from "../types";
 import {
   BarChart,
@@ -126,7 +126,7 @@ export function AnalyticsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Market Concentration */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
@@ -170,11 +170,11 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Cumulative Asset Concentration
           </h3>
-          <div className="h-[250px]">
+          <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={cumulativeData}
@@ -193,19 +193,7 @@ export function AnalyticsPage() {
                   tickFormatter={(v) => `${v}%`}
                   domain={[0, 100]}
                 />
-                <Tooltip
-                  formatter={(value: any, name: any) => [
-                    `${value.toFixed(1)}%`,
-                    name === "cumulative"
-                      ? "Cumulative Share"
-                      : "Individual Share",
-                  ]}
-                  contentStyle={{
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                    fontSize: "12px",
-                  }}
-                />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Area
                   type="monotone"
                   dataKey="cumulative"
@@ -222,11 +210,11 @@ export function AnalyticsPage() {
 
       {/* Size Distribution + Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Bank Size Distribution (by Total Assets)
           </h3>
-          <div className="h-[250px]">
+          <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sizeDistribution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -238,13 +226,7 @@ export function AnalyticsPage() {
                   tick={{ fontSize: 11, fill: "#64748b" }}
                   allowDecimals={false}
                 />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                    fontSize: "12px",
-                  }}
-                />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                   {sizeDistribution.map((entry, i) => (
                     <Cell key={i} fill={entry.color} />
@@ -255,11 +237,11 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Conventional vs Islamic (Avg. Metrics - Normalized 0-100)
           </h3>
-          <div className="h-[250px]">
+          <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#e2e8f0" />
@@ -298,7 +280,7 @@ export function AnalyticsPage() {
               key={`x-${m}`}
               onClick={() => setScatterX(m)}
               className={cn(
-                "px-2.5 py-1 text-[11px] rounded-md font-medium transition-colors",
+                "px-3 py-1.5 text-[11px] rounded-full font-medium transition-colors",
                 scatterX === m
                   ? "bg-blue-600 text-white"
                   : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -315,7 +297,7 @@ export function AnalyticsPage() {
               key={`y-${m}`}
               onClick={() => setScatterY(m)}
               className={cn(
-                "px-2.5 py-1 text-[11px] rounded-md font-medium transition-colors",
+                "px-3 py-1.5 text-[11px] rounded-full font-medium transition-colors",
                 scatterY === m
                   ? "bg-emerald-600 text-white"
                   : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -336,15 +318,17 @@ export function AnalyticsPage() {
       </div>
 
       {/* Profitability Rankings */}
-      <MetricBarChart
-        banks={banks}
-        metric="roa"
-        title="Return on Assets (ROA) Ranking"
-        unit="%"
-        higherIsBetter={true}
-        thresholds={{ good: 1.5, caution: 0.5, danger: 0 }}
-        referenceLine={{ value: 1.5, label: "Int'l Best Practice" }}
-      />
+      <div className="card-hover">
+        <MetricBarChart
+          banks={banks}
+          metric="roa"
+          title="Return on Assets (ROA) Ranking"
+          unit="%"
+          higherIsBetter={true}
+          thresholds={{ good: 1.5, caution: 0.5, danger: 0 }}
+          referenceLine={{ value: 1.5, label: "Int'l Best Practice" }}
+        />
+      </div>
     </div>
   );
 }

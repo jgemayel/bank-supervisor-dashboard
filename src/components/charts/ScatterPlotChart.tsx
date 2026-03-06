@@ -10,7 +10,7 @@ import {
   Legend,
 } from "recharts";
 import type { BankData } from "../../types";
-import { getBankTypeColor, formatNumber, calculatePercentile } from "../../lib/utils";
+import { getBankTypeColor, formatNumber, calculatePercentile, CHART_TOOLTIP_STYLE } from "../../lib/utils";
 
 interface ScatterPlotProps {
   banks: BankData[];
@@ -77,8 +77,8 @@ export function ScatterPlotChart({
   const yDomain = [Math.min(0, Math.min(...yValues)), yPercentile95 * 1.1];
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
-      <h3 className="text-sm font-semibold text-slate-900 mb-4">{title}</h3>
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">{title}</h3>
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
@@ -110,11 +110,7 @@ export function ScatterPlotChart({
             />
             <ZAxis dataKey="assets" range={[40, 400]} />
             <Tooltip
-              contentStyle={{
-                borderRadius: "8px",
-                border: "1px solid #e2e8f0",
-                fontSize: "12px",
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
               formatter={(value: any, name: any) => [
                 `${value.toFixed(1)}`,
                 name,
@@ -146,7 +142,8 @@ export function ScatterPlotChart({
                 name={type}
                 data={data}
                 fill={getBankTypeColor(type)}
-                opacity={0.8}
+                fillOpacity={0.85}
+                r={6}
               />
             ))}
           </ScatterChart>

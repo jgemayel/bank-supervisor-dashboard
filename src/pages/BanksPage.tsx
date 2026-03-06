@@ -143,7 +143,7 @@ export function BanksPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in-up">
       <FilterBar
         filters={filters}
         onUpdate={updateFilter}
@@ -152,11 +152,11 @@ export function BanksPage() {
         totalCount={banks.length}
       />
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden card-hover">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700">
+              <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                 {columns.map((col) => (
                   <th
                     key={col.key}

@@ -10,7 +10,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import type { BankData } from "../../types";
-import { getMetricStatus } from "../../lib/utils";
+import { getMetricStatus, CHART_TOOLTIP_STYLE } from "../../lib/utils";
 
 interface MetricBarChartProps {
   banks: BankData[];
@@ -66,8 +66,8 @@ export function MetricBarChart({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
-      <h3 className="text-sm font-semibold text-slate-900 mb-4">{title}</h3>
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 animate-fade-in-up">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">{title}</h3>
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 60 }}>
@@ -83,17 +83,7 @@ export function MetricBarChart({
               tick={{ fontSize: 11, fill: "#64748b" }}
               tickFormatter={(v) => `${v}${unit}`}
             />
-            <Tooltip
-              formatter={(value: any) => [
-                `${value.toFixed(1)}${unit}`,
-                title,
-              ]}
-              contentStyle={{
-                borderRadius: "8px",
-                border: "1px solid #e2e8f0",
-                fontSize: "12px",
-              }}
-            />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
             {referenceLine && (
               <ReferenceLine
                 y={referenceLine.value}
@@ -106,7 +96,7 @@ export function MetricBarChart({
                 }}
               />
             )}
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
                 <Cell key={index} fill={getBarColor(entry)} />
               ))}

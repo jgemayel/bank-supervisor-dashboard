@@ -1,4 +1,4 @@
-import { Building2, DollarSign, TrendingUp, Shield, AlertTriangle, PieChart } from "lucide-react";
+import { Building2, DollarSign, TrendingUp, Shield, AlertTriangle, BarChart3 } from "lucide-react";
 import { MetricCard } from "../components/MetricCard";
 import { StatusBadge } from "../components/StatusBadge";
 import { SectorCompositionChart } from "../components/charts/SectorCompositionChart";
@@ -7,7 +7,7 @@ import { banks, sectorAggregates } from "../data/banks";
 import { formatSYP, formatNumber } from "../lib/utils";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, PieChart as RPieChart, Pie,
+  ResponsiveContainer, Cell,
 } from "recharts";
 
 const RISK_COLORS: Record<string, string> = {
@@ -61,7 +61,7 @@ export function OverviewPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         <MetricCard
@@ -101,7 +101,7 @@ export function OverviewPage() {
           title="Top 5 Concentration"
           value={`${sectorAggregates.top5Concentration}%`}
           subtitle="of total sector assets"
-          icon={PieChart}
+          icon={BarChart3}
         />
       </div>
 
@@ -143,72 +143,86 @@ export function OverviewPage() {
         <SectorCompositionChart />
 
         {/* Risk Distribution */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Risk Distribution
           </h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RPieChart>
-                <Pie
-                  data={riskDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={90}
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {riskDistribution.map((entry) => (
-                    <Cell key={entry.name} fill={RISK_COLORS[entry.name]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}
-                />
-              </RPieChart>
-            </ResponsiveContainer>
+          <div className="space-y-4">
+            {riskDistribution.map((item) => {
+              const total = riskDistribution.reduce((sum, d) => sum + d.value, 0);
+              const percentage = (item.value / total) * 100;
+              return (
+                <div key={item.name} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      {item.name}
+                    </span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-slate-50">
+                      {item.value}
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${percentage}%`,
+                        backgroundColor: RISK_COLORS[item.name],
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400">
+                    {percentage.toFixed(1)}% of total banks
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Audit Opinions */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Audit Opinion Distribution
           </h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RPieChart>
-                <Pie
-                  data={auditDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={90}
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {auditDistribution.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12px" }}
-                />
-              </RPieChart>
-            </ResponsiveContainer>
+          <div className="space-y-4">
+            {auditDistribution.map((item) => {
+              const total = auditDistribution.reduce((sum, d) => sum + d.value, 0);
+              const percentage = (item.value / total) * 100;
+              return (
+                <div key={item.name} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                      {item.name}
+                    </span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-slate-50">
+                      {item.value}
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${percentage}%`,
+                        backgroundColor: item.color,
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400">
+                    {percentage.toFixed(1)}% of total banks
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* Top 5 Banks Bar Chart */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Top 5 Banks by Total Assets
         </h3>
-        <div className="h-[250px]">
+        <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={topBanks.map((b) => ({
