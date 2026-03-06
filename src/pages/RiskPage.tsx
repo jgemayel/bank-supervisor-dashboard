@@ -49,62 +49,62 @@ export function RiskPage() {
     <div className="space-y-6">
       {/* Risk Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-red-200 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-900/50 p-4">
           <div className="flex items-center gap-2 mb-2">
             <ShieldAlert className="h-4 w-4 text-red-600" />
-            <span className="text-xs font-medium text-red-600 uppercase">
+            <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase">
               High Risk Banks
             </span>
           </div>
-          <p className="text-2xl font-bold text-red-700">
+          <p className="text-2xl font-bold text-red-700 dark:text-red-400">
             {highRiskBanks.length}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {highRiskBanks.map((b) => b.shortName).join(", ")}
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-red-200 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-red-200 dark:border-red-900/50 p-4">
           <div className="flex items-center gap-2 mb-2">
             <FileWarning className="h-4 w-4 text-red-600" />
-            <span className="text-xs font-medium text-red-600 uppercase">
+            <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase">
               Qualified Opinions
             </span>
           </div>
-          <p className="text-2xl font-bold text-red-700">
+          <p className="text-2xl font-bold text-red-700 dark:text-red-400">
             {qualifiedBanks.length}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {qualifiedBanks.map((b) => b.shortName).join(", ")}
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-amber-200 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-900/50 p-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span className="text-xs font-medium text-amber-600 uppercase">
+            <span className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase">
               Emphasis of Matter
             </span>
           </div>
-          <p className="text-2xl font-bold text-amber-700">
+          <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
             {emphasisBanks.length}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {emphasisBanks.map((b) => b.shortName).join(", ")}
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-purple-200 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-purple-200 dark:border-purple-900/50 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Database className="h-4 w-4 text-purple-600" />
-            <span className="text-xs font-medium text-purple-600 uppercase">
+            <span className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase">
               Lebanese Exposure
             </span>
           </div>
-          <p className="text-2xl font-bold text-purple-700">
+          <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
             {exposedBanks.length} banks
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {formatSYP(totalExposedAssets)} in total assets
           </p>
         </div>
@@ -124,7 +124,7 @@ export function RiskPage() {
               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               activeTab === tab.id
                 ? "bg-blue-600 text-white"
-                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             )}
           >
             <tab.icon className="h-4 w-4" />
@@ -136,8 +136,8 @@ export function RiskPage() {
       {/* Audit Tab */}
       {activeTab === "audit" && (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Audit Opinions by Bank (ordered by asset size)
             </h3>
             <div className="h-[300px]">
@@ -207,8 +207,8 @@ export function RiskPage() {
           </div>
 
           {/* Detailed Audit Findings */}
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Audit Findings Detail
             </h3>
             <div className="space-y-3">
@@ -218,22 +218,22 @@ export function RiskPage() {
                 .map((bank) => (
                   <div
                     key={bank.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
+                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 transition-colors"
                   >
                     <StatusBadge label={bank.auditOpinion} variant="audit" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-900">
+                        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                           {bank.shortName}
                         </span>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">
                           {bank.name}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 mt-1">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                         {bank.auditReason}
                       </p>
-                      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-500">
+                      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-500 dark:text-slate-400">
                         <span>Auditor: {bank.auditor}</span>
                         <span>Period: {bank.reportingPeriod}</span>
                         <span>Assets: {formatSYP(bank.totalAssets)}</span>
@@ -250,14 +250,14 @@ export function RiskPage() {
       {/* Lebanese Exposure Tab */}
       {activeTab === "lebanese" && (
         <div className="space-y-6">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900/50 rounded-xl p-5">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-sm font-semibold text-red-900">
+                <h3 className="text-sm font-semibold text-red-900 dark:text-red-300">
                   Systemic Risk: Lebanese Bank Exposure
                 </h3>
-                <p className="text-xs text-red-700 mt-1">
+                <p className="text-xs text-red-700 dark:text-red-400 mt-1">
                   Following the Lebanese financial crisis, 5 Syrian banks maintain
                   significant exposure to Lebanese parent or correspondent banks.
                   CBS Decision requires minimum 30% provisioning for these
@@ -267,27 +267,27 @@ export function RiskPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Affected Banks
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-2 px-3 font-medium text-slate-600">
+                  <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-300">
                       Bank
                     </th>
-                    <th className="text-left py-2 px-3 font-medium text-slate-600">
+                    <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-300">
                       Lebanese Parent/Affiliate
                     </th>
-                    <th className="text-left py-2 px-3 font-medium text-slate-600">
+                    <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-300">
                       Provisioning Status
                     </th>
-                    <th className="text-center py-2 px-3 font-medium text-slate-600">
+                    <th className="text-center py-2 px-3 font-medium text-slate-600 dark:text-slate-300">
                       CBS Compliance
                     </th>
-                    <th className="text-right py-2 px-3 font-medium text-slate-600">
+                    <th className="text-right py-2 px-3 font-medium text-slate-600 dark:text-slate-300">
                       Total Assets
                     </th>
                   </tr>
@@ -300,15 +300,15 @@ export function RiskPage() {
                     return (
                       <tr
                         key={exp.bankShortName}
-                        className="border-b border-slate-100 hover:bg-slate-50"
+                        className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                       >
-                        <td className="py-2.5 px-3 font-medium text-slate-900">
+                        <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-slate-100">
                           {exp.bankShortName}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-600">
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">
                           {exp.parentAffiliation}
                         </td>
-                        <td className="py-2.5 px-3 text-slate-600">
+                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">
                           {exp.provisioningStatus}
                         </td>
                         <td className="py-2.5 px-3 text-center">
@@ -338,14 +338,14 @@ export function RiskPage() {
       {/* Data Gaps Tab */}
       {activeTab === "gaps" && (
         <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-900/50 rounded-xl p-5">
             <div className="flex items-start gap-3">
               <Database className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-sm font-semibold text-blue-900">
+                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300">
                   Data Availability Assessment
                 </h3>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
                   Comparison of available data against Basel III/BCBS disclosure
                   requirements. Several key prudential metrics are not disclosed in
                   published financial statements and would require regulatory
@@ -355,36 +355,36 @@ export function RiskPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Missing Prudential Data (Basel III Requirements)
             </h3>
             <div className="space-y-3">
               {dataGaps.map((gap, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-4 p-3 rounded-lg border border-slate-100"
+                  className="flex items-start gap-4 p-3 rounded-lg border border-slate-100 dark:border-slate-700"
                 >
                   <span
                     className={cn(
                       "shrink-0 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold",
                       gap.status === "Missing"
-                        ? "bg-red-100 text-red-700"
+                        ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                         : gap.status === "Partial"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-emerald-100 text-emerald-700"
+                        ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                        : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
                     )}
                   >
                     {gap.status}
                   </span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                       {gap.metric}
                     </p>
-                    <p className="text-xs text-slate-600 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                       {gap.description}
                     </p>
-                    <p className="text-[10px] text-blue-600 mt-1">
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-1">
                       Basel reference: {gap.baselReference}
                     </p>
                   </div>

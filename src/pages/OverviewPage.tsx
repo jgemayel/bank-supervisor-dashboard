@@ -107,10 +107,10 @@ export function OverviewPage() {
 
       {/* Alerts Panel */}
       {alerts.length > 0 && (
-        <div className="bg-white rounded-xl border border-amber-200 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-900/50 p-5">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <h3 className="text-sm font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Supervisory Alerts ({alerts.length})
             </h3>
           </div>
@@ -118,7 +118,7 @@ export function OverviewPage() {
             {alerts.map((alert, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 text-xs p-2 rounded-lg bg-slate-50"
+                className="flex items-start gap-3 text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-700"
               >
                 <StatusBadge
                   label={alert.bank}
@@ -131,7 +131,7 @@ export function OverviewPage() {
                       : "bg-blue-100 text-blue-700 border-blue-200"
                   }
                 />
-                <span className="text-slate-600">{alert.message}</span>
+                <span className="text-slate-600 dark:text-slate-300">{alert.message}</span>
               </div>
             ))}
           </div>
@@ -143,8 +143,8 @@ export function OverviewPage() {
         <SectorCompositionChart />
 
         {/* Risk Distribution */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Risk Distribution
           </h3>
           <div className="h-[300px]">
@@ -173,8 +173,8 @@ export function OverviewPage() {
         </div>
 
         {/* Audit Opinions */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Audit Opinion Distribution
           </h3>
           <div className="h-[300px]">
@@ -204,8 +204,8 @@ export function OverviewPage() {
       </div>
 
       {/* Top 5 Banks Bar Chart */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Top 5 Banks by Total Assets
         </h3>
         <div className="h-[250px]">

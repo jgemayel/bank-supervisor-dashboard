@@ -129,26 +129,26 @@ export function AnalyticsPage() {
     <div className="space-y-6">
       {/* Market Concentration */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
             Market Concentration (HHI)
           </h3>
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
             {hhi.toFixed(0)}
           </p>
           <p
             className={cn(
               "text-sm font-medium mt-1",
               hhi > 2500
-                ? "text-red-600"
+                ? "text-red-600 dark:text-red-400"
                 : hhi > 1500
-                ? "text-amber-600"
-                : "text-emerald-600"
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-emerald-600 dark:text-emerald-400"
             )}
           >
             {hhiCategory}
           </p>
-          <div className="mt-4 space-y-2 text-[10px] text-slate-500">
+          <div className="mt-4 space-y-2 text-[10px] text-slate-500 dark:text-slate-400">
             <div className="flex justify-between">
               <span>Top 5 share</span>
               <span className="font-medium">
@@ -170,8 +170,8 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Cumulative Asset Concentration
           </h3>
           <div className="h-[250px]">
@@ -222,8 +222,8 @@ export function AnalyticsPage() {
 
       {/* Size Distribution + Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Bank Size Distribution (by Total Assets)
           </h3>
           <div className="h-[250px]">
@@ -255,8 +255,8 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Conventional vs Islamic (Avg. Metrics - Normalized 0-100)
           </h3>
           <div className="h-[250px]">
@@ -292,7 +292,7 @@ export function AnalyticsPage() {
       {/* Scatter Plot */}
       <div className="space-y-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-slate-600">X Axis:</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-300">X Axis:</span>
           {selectableMetrics.map((m) => (
             <button
               key={`x-${m}`}
@@ -301,7 +301,7 @@ export function AnalyticsPage() {
                 "px-2.5 py-1 text-[11px] rounded-md font-medium transition-colors",
                 scatterX === m
                   ? "bg-blue-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
               )}
             >
               {metricLabels[m]}
@@ -309,7 +309,7 @@ export function AnalyticsPage() {
           ))}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-slate-600">Y Axis:</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Y Axis:</span>
           {selectableMetrics.map((m) => (
             <button
               key={`y-${m}`}
@@ -318,7 +318,7 @@ export function AnalyticsPage() {
                 "px-2.5 py-1 text-[11px] rounded-md font-medium transition-colors",
                 scatterY === m
                   ? "bg-emerald-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
               )}
             >
               {metricLabels[m]}

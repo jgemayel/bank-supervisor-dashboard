@@ -33,10 +33,10 @@ export function PrudentialPage() {
   return (
     <div className="space-y-6">
       {/* Benchmark Reference Cards */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
         <div className="flex items-center gap-2 mb-4">
           <ShieldCheck className="h-5 w-5 text-blue-600" />
-          <h3 className="text-sm font-semibold text-slate-900">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Prudential Benchmarks Reference
           </h3>
         </div>
@@ -44,19 +44,19 @@ export function PrudentialPage() {
           {prudentialBenchmarks.map((bench, i) => (
             <div
               key={i}
-              className="border border-slate-200 rounded-lg overflow-hidden"
+              className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
             >
               <button
-                className="w-full flex items-center justify-between p-3 hover:bg-slate-50 transition-colors text-left"
+                className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
                 onClick={() =>
                   setExpandedBenchmark(expandedBenchmark === i ? null : i)
                 }
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {bench.metric}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     ({bench.unit})
                   </span>
                 </div>
@@ -67,28 +67,28 @@ export function PrudentialPage() {
                 )}
               </button>
               {expandedBenchmark === i && (
-                <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
-                  <p className="text-xs text-slate-600">{bench.description}</p>
+                <div className="px-3 pb-3 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-3">
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{bench.description}</p>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-blue-50 rounded-lg p-2.5">
-                      <p className="text-[10px] font-medium text-blue-600 uppercase tracking-wider mb-0.5">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2.5">
+                      <p className="text-[10px] font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
                         Basel III / BCBS
                       </p>
-                      <p className="text-xs text-slate-900">{bench.baselStandard}</p>
+                      <p className="text-xs text-slate-900 dark:text-slate-100">{bench.baselStandard}</p>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-2.5">
-                      <p className="text-[10px] font-medium text-purple-600 uppercase tracking-wider mb-0.5">
+                    <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-2.5">
+                      <p className="text-[10px] font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-0.5">
                         CBS Requirement
                       </p>
-                      <p className="text-xs text-slate-900">
+                      <p className="text-xs text-slate-900 dark:text-slate-100">
                         {bench.cbsRequirement}
                       </p>
                     </div>
-                    <div className="bg-emerald-50 rounded-lg p-2.5">
-                      <p className="text-[10px] font-medium text-emerald-600 uppercase tracking-wider mb-0.5">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/30 rounded-lg p-2.5">
+                      <p className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0.5">
                         International Best Practice
                       </p>
-                      <p className="text-xs text-slate-900">
+                      <p className="text-xs text-slate-900 dark:text-slate-100">
                         {bench.internationalBest}
                       </p>
                     </div>
@@ -131,7 +131,7 @@ export function PrudentialPage() {
                 "px-3 py-1.5 text-xs rounded-lg font-medium transition-colors",
                 selectedMetric === opt.key
                   ? "bg-blue-600 text-white"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
               )}
             >
               {opt.label}
@@ -166,26 +166,26 @@ export function PrudentialPage() {
       </div>
 
       {/* Bank Compliance Summary Table */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Compliance Summary (All Metrics)
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-2 font-medium text-slate-600">
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-300">
                   Bank
                 </th>
                 {prudentialBenchmarks.map((b) => (
                   <th
                     key={b.metric}
-                    className="text-center py-2 px-2 font-medium text-slate-600"
+                    className="text-center py-2 px-2 font-medium text-slate-600 dark:text-slate-300"
                   >
                     {b.metric.split("(")[0].trim().split(" ").slice(0, 2).join(" ")}
                   </th>
                 ))}
-                <th className="text-center py-2 px-2 font-medium text-slate-600">
+                <th className="text-center py-2 px-2 font-medium text-slate-600 dark:text-slate-300">
                   Score
                 </th>
               </tr>
@@ -219,9 +219,9 @@ export function PrudentialPage() {
                   return (
                     <tr
                       key={bank.id}
-                      className="border-b border-slate-100 hover:bg-slate-50"
+                      className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
-                      <td className="py-1.5 px-2 font-medium text-slate-900 whitespace-nowrap">
+                      <td className="py-1.5 px-2 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
                         {bank.shortName}
                       </td>
                       {statuses.map((status, i) => (

@@ -126,9 +126,9 @@ export function ProfilesPage() {
   return (
     <div className="space-y-6">
       {/* Bank Selector */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
         <div className="flex items-center gap-4 flex-wrap">
-          <label className="text-sm font-medium text-slate-700">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Select Bank:
           </label>
           <select
@@ -138,7 +138,7 @@ export function ProfilesPage() {
               setSelectedId(id);
               setSearchParams({ bank: id.toString() });
             }}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[300px]"
+            className="text-sm border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 min-w-[300px]"
           >
             {banks.map((b) => (
               <option key={b.id} value={b.id}>
@@ -159,11 +159,11 @@ export function ProfilesPage() {
       </div>
 
       {/* Bank Header */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">{bank.name}</h2>
-            <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{bank.name}</h2>
+            <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
                 <Building2 className="h-3.5 w-3.5" />
                 {bank.type}
@@ -183,15 +183,15 @@ export function ProfilesPage() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-slate-500">Compliance Score</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Compliance Score</p>
             <p
               className={cn(
                 "text-2xl font-bold",
                 goodCount >= 5
-                  ? "text-emerald-600"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : goodCount >= 3
-                  ? "text-amber-600"
-                  : "text-red-600"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-red-600 dark:text-red-400"
               )}
             >
               {goodCount}/{prudentialBenchmarks.length}
@@ -230,17 +230,17 @@ export function ProfilesPage() {
 
       {/* Lebanese Exposure Warning */}
       {lebExposure && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900/50 rounded-xl p-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
             <div>
-              <h3 className="text-sm font-semibold text-red-900">
+              <h3 className="text-sm font-semibold text-red-900 dark:text-red-300">
                 Lebanese Bank Exposure
               </h3>
-              <p className="text-xs text-red-700 mt-1">
+              <p className="text-xs text-red-700 dark:text-red-400 mt-1">
                 Parent/Affiliate: {lebExposure.parentAffiliation}
               </p>
-              <p className="text-xs text-red-700 mt-0.5">
+              <p className="text-xs text-red-700 dark:text-red-400 mt-0.5">
                 Status: {lebExposure.provisioningStatus}
               </p>
               <StatusBadge
@@ -259,18 +259,18 @@ export function ProfilesPage() {
 
       {/* Audit Info */}
       {bank.auditOpinion !== "Clean" && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-amber-900 mb-1">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-300 mb-1">
             Audit Finding
           </h3>
-          <p className="text-xs text-amber-800">{bank.auditReason}</p>
+          <p className="text-xs text-amber-800 dark:text-amber-400">{bank.auditReason}</p>
         </div>
       )}
 
       {/* Performance Scorecard + Peer Comparison */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Performance Scorecard
           </h3>
           <div className="space-y-5">
@@ -325,24 +325,24 @@ export function ProfilesPage() {
               return (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-slate-700">
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
                       {score.metric}
                     </span>
-                    <span className="text-sm font-bold text-slate-900">
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
                       {score.value.toFixed(2)}%
                     </span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                     <div
                       className={cn("h-full transition-all", statusColor)}
                       style={{ width: `${scoreValue}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                       {explanation}
                     </span>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
                       Sector avg: {sectorAvg(metricKeys[i]).toFixed(2)}%
                     </span>
                   </div>
@@ -352,8 +352,8 @@ export function ProfilesPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Peer Comparison ({bank.type} average)
           </h3>
           <div className="h-[300px]">

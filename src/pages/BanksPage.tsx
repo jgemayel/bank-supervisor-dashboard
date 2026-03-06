@@ -134,7 +134,7 @@ export function BanksPage() {
 
   const SortIcon = ({ field }: { field: keyof BankData }) => {
     if (filters.sortBy !== field)
-      return <ArrowUpDown className="h-3 w-3 text-slate-300" />;
+      return <ArrowUpDown className="h-3 w-3 text-slate-400 dark:text-slate-500" />;
     return filters.sortDir === "asc" ? (
       <ArrowUp className="h-3 w-3 text-blue-600" />
     ) : (
@@ -152,16 +152,16 @@ export function BanksPage() {
         totalCount={banks.length}
       />
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
+              <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700">
                 {columns.map((col) => (
                   <th
                     key={col.key}
                     className={cn(
-                      "py-3 px-3 text-[11px] font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none",
+                      "py-3 px-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors select-none",
                       col.align === "right" && "text-right",
                       col.align === "center" && "text-center"
                     )}
@@ -186,7 +186,7 @@ export function BanksPage() {
               {filteredBanks.map((bank) => (
                 <tr
                   key={bank.id}
-                  className="border-b border-slate-100 hover:bg-blue-50/50 cursor-pointer transition-colors"
+                  className="border-b border-slate-100 dark:border-slate-700 hover:bg-blue-50/50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
                   onClick={() => navigate(`/profiles?bank=${bank.id}`)}
                 >
                   {columns.map((col) => (
@@ -209,7 +209,7 @@ export function BanksPage() {
                 <tr>
                   <td
                     colSpan={columns.length}
-                    className="py-12 text-center text-sm text-slate-500"
+                    className="py-12 text-center text-sm text-slate-500 dark:text-slate-400"
                   >
                     No banks match the current filters.
                   </td>
