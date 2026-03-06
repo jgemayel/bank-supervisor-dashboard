@@ -292,7 +292,7 @@ export function AnalyticsPage() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span>HHI Interpretation</span>
+              <span>Herfindahl-Hirschman Index</span>
               <span className="text-right text-[10px]">
                 {'<'}1500: Competitive
                 <br />
@@ -306,9 +306,12 @@ export function AnalyticsPage() {
 
         {/* Cumulative Concentration Chart */}
         <div className="lg:col-span-2 card-surface p-6">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
             Cumulative Asset Concentration
           </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            Banks ordered by total assets (largest first). Shows how quickly market share accumulates across institutions.
+          </p>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={concentrationData} margin={{ top: 5, right: 20, left: 0, bottom: 60 }}>
@@ -350,9 +353,12 @@ export function AnalyticsPage() {
           SECTION 2: SIZE DISTRIBUTION
           ==================================================================== */}
       <div className="card-surface p-6">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
           Bank Size Distribution (Total Assets Tiers)
         </h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+          Number of banks in each asset size bracket. SYP = Syrian Pound.
+        </p>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -398,10 +404,10 @@ export function AnalyticsPage() {
         {/* Risk-Return Scatter */}
         <div className="card-surface p-6">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
-            Risk-Return Profile (ROA vs Equity/Assets)
+            Return vs. Capital Buffer
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-            Bubble size represents total assets. Dot color indicates bank type.
+            X-axis: Return on Assets (ROA %). Higher = more profitable. Y-axis: Equity / Total Assets (%). Higher = larger capital cushion. Bubble size: Total assets. Dashed lines: sector averages.
           </p>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -483,9 +489,13 @@ export function AnalyticsPage() {
 
         {/* Bank Type Comparison Radar */}
         <div className="card-surface p-6">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
-            Bank Type Comparison (Normalized Metrics 0-100)
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            Conventional vs. Islamic Banks
           </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            Average scores by bank type, normalized to a 0-100 scale where 100 is best.{" "}
+            <strong>ROA</strong>: profitability (10% = 100). <strong>ROE</strong>: equity returns (40% = 100). <strong>Capital</strong>: equity/assets ratio (50% = 100). <strong>Liquidity</strong>: cash/assets (60% = 100). <strong>Efficiency</strong>: 100 minus cost-to-income ratio.
+          </p>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
@@ -570,8 +580,8 @@ export function AnalyticsPage() {
                 <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-100 text-xs">
                   {getRankingLabel(rankingSort)}
                 </th>
-                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-100 text-xs">
-                  Δ Metric
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-100 text-xs" title="Difference from the bank ranked immediately above">
+                  Gap to Above
                 </th>
               </tr>
             </thead>

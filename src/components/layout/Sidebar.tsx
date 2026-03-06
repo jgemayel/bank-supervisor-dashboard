@@ -43,6 +43,7 @@ const navSections = [
       { to: "/stress", icon: Activity, label: "Stress Testing" },
       { to: "/compare", icon: GitCompareArrows, label: "Peer Comparison" },
       { to: "/profiles", icon: UserCircle, label: "Bank Profiles" },
+      { to: "/sources", icon: FileText, label: "Data Sources" },
     ],
   },
 ];

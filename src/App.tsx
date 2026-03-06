@@ -10,6 +10,7 @@ import { ProfilesPage } from "./pages/ProfilesPage";
 import { ExecutiveSummaryPage } from "./pages/ExecutiveSummaryPage";
 import { StressTestPage } from "./pages/StressTestPage";
 import { ComparePage } from "./pages/ComparePage";
+import { SourcesPage } from "./pages/SourcesPage";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/compare" element={<ComparePage />} />
             <Route path="/profiles" element={<ProfilesPage />} />
+            <Route path="/sources" element={<SourcesPage />} />
           </Route>
         </Routes>
       </HashRouter>
