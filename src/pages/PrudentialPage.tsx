@@ -235,13 +235,16 @@ export function PrudentialPage() {
             <thead>
               <tr>
                 <th className="text-left w-20">Bank</th>
-                {allBenchmarks.map((b, i) => (
-                  <th key={i} className="text-center w-16">
-                    <div className="text-[9px] leading-tight">
-                      {i === 6 ? "NPL" : b.metric.split("(")[0].trim().split(" ").slice(0, 2).join(" ")}
-                    </div>
-                  </th>
-                ))}
+                {allBenchmarks.map((b, i) => {
+                  const shortHeaders = ["E/A", "ROA", "ROE", "C/I", "L/D", "Cash/A", "NPL"];
+                  return (
+                    <th key={i} className="text-center w-16" title={b.metric}>
+                      <div className="text-[9px] leading-tight">
+                        {shortHeaders[i]}
+                      </div>
+                    </th>
+                  );
+                })}
                 <th className="text-center w-12">Score</th>
               </tr>
             </thead>

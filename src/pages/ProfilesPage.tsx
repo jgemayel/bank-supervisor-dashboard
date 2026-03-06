@@ -230,7 +230,7 @@ export function ProfilesPage() {
     const bankVal = bank[key] as number;
     const peerVal = calculatePeerAverages(bank, key);
     return {
-      metric: metricLabels[key].split("(")[0].trim().split(" ").slice(0, 2).join(" "),
+      metric: ({"equityToAssets":"E/A","roa":"ROA","roe":"ROE","costToIncome":"C/I","loansToDeposits":"L/D","cashToAssets":"Cash/A"} as Record<string,string>)[key] || key,
       bank: normalizeMetricValue(bankVal, bench),
       peer: normalizeMetricValue(peerVal, bench),
     };
@@ -238,7 +238,7 @@ export function ProfilesPage() {
 
   /* Bar chart data */
   const barData = metricKeys.map((key, i) => ({
-    metric: complianceScores[i].metric.split(" ").slice(0, 2).join(" "),
+    metric: ["E/A", "ROA", "ROE", "C/I", "L/D", "Cash/A"][i],
     [bank.shortName]: Number((bank[key] as number).toFixed(2)),
     "Peer Avg": Number(calculatePeerAverages(bank, key).toFixed(2)),
     "Sector Avg": Number(calculateSectorAverage(key).toFixed(2)),

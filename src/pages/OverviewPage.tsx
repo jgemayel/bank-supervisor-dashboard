@@ -486,15 +486,18 @@ export function OverviewPage() {
                   Bank
                 </th>
                 <th className="w-12">Type</th>
-                {prudentialBenchmarks.map((bench) => (
-                  <th
-                    key={bench.metric}
-                    className="w-10 text-center"
-                    title={bench.description}
-                  >
-                    <div className="text-[9px]">{bench.metric.substring(0, 10)}</div>
-                  </th>
-                ))}
+                {prudentialBenchmarks.map((bench, i) => {
+                  const shortHeaders = ["E/A", "ROA", "ROE", "C/I", "L/D", "Cash/A"];
+                  return (
+                    <th
+                      key={bench.metric}
+                      className="w-10 text-center"
+                      title={bench.metric}
+                    >
+                      <div className="text-[9px]">{shortHeaders[i]}</div>
+                    </th>
+                  );
+                })}
                 <th className="w-10 text-center" title="Non-Performing Loans Ratio">
                   <div className="text-[9px]">NPL%</div>
                 </th>
