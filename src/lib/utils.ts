@@ -83,3 +83,9 @@ export function getBankTypeColor(type: string): string {
 export function calculateHHI(banks: BankData[]): number {
   return banks.reduce((sum, b) => sum + Math.pow(b.sectorShare, 2), 0);
 }
+
+export function calculatePercentile(values: number[], percentile: number): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+  return sorted[Math.max(0, index)];
+}

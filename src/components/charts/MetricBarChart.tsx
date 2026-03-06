@@ -34,7 +34,11 @@ export function MetricBarChart({
   color = "#3b82f6",
 }: MetricBarChartProps) {
   const data = banks
-    .sort((a, b) => (b[metric] as number) - (a[metric] as number))
+    .sort((a, b) => {
+      const aVal = a[metric] as number;
+      const bVal = b[metric] as number;
+      return higherIsBetter ? bVal - aVal : aVal - bVal;
+    })
     .map((b) => ({
       name: b.shortName,
       value: b[metric] as number,

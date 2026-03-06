@@ -4,11 +4,11 @@ import { banks, prudentialBenchmarks } from "../data/banks";
 import { lebaneseExposureData } from "../data/lebanese-exposure";
 import { StatusBadge } from "../components/StatusBadge";
 import { MetricCard } from "../components/MetricCard";
+import { BulletRangeChart } from "../components/charts/BulletRangeChart";
 import {
   formatSYP,
   cn,
   getMetricStatus,
-  getStatusColor,
 } from "../lib/utils";
 import type { BankData } from "../types";
 import {
@@ -22,11 +22,6 @@ import {
   Calendar,
 } from "lucide-react";
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -83,34 +78,11 @@ export function ProfilesPage() {
     (s) => s.status === "good"
   ).length;
 
-  // Radar data normalized
-  const radarData = [
-    {
-      metric: "ROA",
-      value: Math.min(bank.roa / 5, 1) * 100,
-      raw: bank.roa,
-    },
-    {
-      metric: "ROE",
-      value: Math.min(bank.roe / 30, 1) * 100,
-      raw: bank.roe,
-    },
-    {
-      metric: "Capital",
-      value: Math.min(bank.equityToAssets / 50, 1) * 100,
-      raw: bank.equityToAssets,
-    },
-    {
-      metric: "Liquidity",
-      value: Math.min(bank.cashToAssets / 60, 1) * 100,
-      raw: bank.cashToAssets,
-    },
-    {
-      metric: "Efficiency",
-      value: Math.max(0, (100 - bank.costToIncome) / 100) * 100,
-      raw: bank.costToIncome,
-    },
-  ];
+  // Calculate sector averages from all banks
+  const sectorAvg = (metric: keyof BankData) => {
+    if (banks.length === 0) return 0;
+    return banks.reduce((sum, b) => sum + (b[metric] as number), 0) / banks.length;
+  };
 
   // Peer comparison
   const peerBanks = banks.filter((b) => b.type === bank.type && b.id !== bank.id);
@@ -295,30 +267,88 @@ export function ProfilesPage() {
         </div>
       )}
 
-      {/* Radar + Peer Comparison */}
+      {/* Performance Scorecard + Peer Comparison */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-900 mb-4">
-            Performance Radar
+            Performance Scorecard
           </h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis
-                  dataKey="metric"
-                  tick={{ fontSize: 11, fill: "#64748b" }}
-                />
-                <PolarRadiusAxis tick={false} domain={[0, 100]} />
-                <Radar
-                  name={bank.shortName}
-                  dataKey="value"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.3}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+          <div className="space-y-5">
+            {complianceScores.map((score, i) => {
+              const bench = prudentialBenchmarks[i];
+              const scoreValue = bench.higher_is_better
+                ? Math.min(
+                    Math.max(
+                      ((score.value - bench.thresholdDanger) /
+                        (bench.thresholdGood - bench.thresholdDanger)) *
+                        100,
+                      0
+                    ),
+                    100
+                  )
+                : Math.min(
+                    Math.max(
+                      ((bench.thresholdDanger - score.value) /
+                        (bench.thresholdDanger - bench.thresholdGood)) *
+                        100,
+                      0
+                    ),
+                    100
+                  );
+
+              let explanation = "";
+              if (bench.higher_is_better) {
+                if (score.value >= bench.thresholdGood) {
+                  explanation = `Above best practice (>${bench.thresholdGood})`;
+                } else if (score.value >= bench.thresholdCaution) {
+                  explanation = `Above caution threshold (>${bench.thresholdCaution})`;
+                } else {
+                  explanation = `Below caution threshold (<${bench.thresholdCaution})`;
+                }
+              } else {
+                if (score.value <= bench.thresholdGood) {
+                  explanation = `Below best practice (<${bench.thresholdGood})`;
+                } else if (score.value <= bench.thresholdCaution) {
+                  explanation = `Below caution threshold (<${bench.thresholdCaution})`;
+                } else {
+                  explanation = `Above caution threshold (>${bench.thresholdCaution})`;
+                }
+              }
+
+              const statusColor =
+                score.status === "good"
+                  ? "bg-green-500"
+                  : score.status === "caution"
+                  ? "bg-amber-500"
+                  : "bg-red-500";
+
+              return (
+                <div key={i}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-slate-700">
+                      {score.metric}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {score.value.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={cn("h-full transition-all", statusColor)}
+                      style={{ width: `${scoreValue}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="text-[10px] text-slate-500">
+                      {explanation}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Sector avg: {sectorAvg(metricKeys[i]).toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -357,45 +387,22 @@ export function ProfilesPage() {
         </div>
       </div>
 
-      {/* Compliance Detail */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">
-          Prudential Compliance Detail
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {complianceScores.map((score, i) => (
-            <div
-              key={i}
-              className={cn(
-                "p-3 rounded-lg border",
-                score.status === "good"
-                  ? "border-emerald-200 bg-emerald-50/50"
-                  : score.status === "caution"
-                  ? "border-amber-200 bg-amber-50/50"
-                  : "border-red-200 bg-red-50/50"
-              )}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-slate-700">
-                  {score.metric}
-                </span>
-                <span
-                  className={cn(
-                    "text-xs font-bold",
-                    getStatusColor(score.status)
-                  )}
-                >
-                  {score.value.toFixed(1)}%
-                </span>
-              </div>
-              <div className="text-[10px] text-slate-500 space-y-0.5">
-                <p>Basel: {score.benchmark.baselStandard}</p>
-                <p>Best Practice: {score.benchmark.internationalBest}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* BulletRangeChart - Prudential Compliance Detail */}
+      <BulletRangeChart
+        metrics={complianceScores.map((score, i) => ({
+          label: score.metric,
+          value: score.value,
+          sectorAverage: sectorAvg(metricKeys[i]),
+          thresholdGood: prudentialBenchmarks[i].thresholdGood,
+          thresholdCaution: prudentialBenchmarks[i].thresholdCaution,
+          thresholdDanger: prudentialBenchmarks[i].thresholdDanger,
+          higherIsBetter: prudentialBenchmarks[i].higher_is_better,
+          unit: prudentialBenchmarks[i].unit,
+          baselStandard: prudentialBenchmarks[i].baselStandard,
+          bestPractice: prudentialBenchmarks[i].internationalBest,
+        }))}
+        bankName={bank.name}
+      />
     </div>
   );
 }

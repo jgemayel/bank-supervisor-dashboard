@@ -10,7 +10,7 @@ import {
   Legend,
 } from "recharts";
 import type { BankData } from "../../types";
-import { getBankTypeColor, formatNumber } from "../../lib/utils";
+import { getBankTypeColor, formatNumber, calculatePercentile } from "../../lib/utils";
 
 interface ScatterPlotProps {
   banks: BankData[];
@@ -60,6 +60,22 @@ export function ScatterPlotChart({
       })),
   };
 
+  // Calculate axis domains using 95th percentile to handle outliers
+  const allData = [
+    ...groupedData.Conventional,
+    ...groupedData.Islamic,
+    ...groupedData.Microfinance,
+  ];
+
+  const xValues = allData.map((d) => d.x).filter((v) => !isNaN(v) && isFinite(v));
+  const yValues = allData.map((d) => d.y).filter((v) => !isNaN(v) && isFinite(v));
+
+  const xPercentile95 = calculatePercentile(xValues, 95);
+  const yPercentile95 = calculatePercentile(yValues, 95);
+
+  const xDomain = [Math.min(0, Math.min(...xValues)), xPercentile95 * 1.1];
+  const yDomain = [Math.min(0, Math.min(...yValues)), yPercentile95 * 1.1];
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">
       <h3 className="text-sm font-semibold text-slate-900 mb-4">{title}</h3>
@@ -71,6 +87,7 @@ export function ScatterPlotChart({
               dataKey="x"
               name={xLabel}
               unit={xUnit}
+              domain={xDomain}
               tick={{ fontSize: 11, fill: "#64748b" }}
               label={{
                 value: xLabel,
@@ -82,6 +99,7 @@ export function ScatterPlotChart({
               dataKey="y"
               name={yLabel}
               unit={yUnit}
+              domain={yDomain}
               tick={{ fontSize: 11, fill: "#64748b" }}
               label={{
                 value: yLabel,

@@ -72,28 +72,28 @@ export function AnalyticsPage() {
   const radarData = [
     {
       metric: "ROA",
-      Conventional: typeAvg("Conventional", "roa"),
-      Islamic: typeAvg("Islamic", "roa"),
+      Conventional: Math.min(100, Math.max(0, (typeAvg("Conventional", "roa") / 10) * 100)),
+      Islamic: Math.min(100, Math.max(0, (typeAvg("Islamic", "roa") / 10) * 100)),
     },
     {
       metric: "ROE",
-      Conventional: typeAvg("Conventional", "roe") / 5,
-      Islamic: typeAvg("Islamic", "roe") / 5,
+      Conventional: Math.min(100, Math.max(0, (typeAvg("Conventional", "roe") / 40) * 100)),
+      Islamic: Math.min(100, Math.max(0, (typeAvg("Islamic", "roe") / 40) * 100)),
     },
     {
       metric: "Equity/Assets",
-      Conventional: typeAvg("Conventional", "equityToAssets"),
-      Islamic: typeAvg("Islamic", "equityToAssets"),
+      Conventional: Math.min(100, Math.max(0, (typeAvg("Conventional", "equityToAssets") / 50) * 100)),
+      Islamic: Math.min(100, Math.max(0, (typeAvg("Islamic", "equityToAssets") / 50) * 100)),
     },
     {
       metric: "Cash/Assets",
-      Conventional: typeAvg("Conventional", "cashToAssets"),
-      Islamic: typeAvg("Islamic", "cashToAssets"),
+      Conventional: Math.min(100, Math.max(0, (typeAvg("Conventional", "cashToAssets") / 60) * 100)),
+      Islamic: Math.min(100, Math.max(0, (typeAvg("Islamic", "cashToAssets") / 60) * 100)),
     },
     {
       metric: "Efficiency",
-      Conventional: 100 - typeAvg("Conventional", "costToIncome"),
-      Islamic: 100 - typeAvg("Islamic", "costToIncome"),
+      Conventional: Math.min(100, Math.max(0, 100 - typeAvg("Conventional", "costToIncome"))),
+      Islamic: Math.min(100, Math.max(0, 100 - typeAvg("Islamic", "costToIncome"))),
     },
   ];
 
@@ -257,7 +257,7 @@ export function AnalyticsPage() {
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-900 mb-4">
-            Conventional vs Islamic (Avg. Metrics)
+            Conventional vs Islamic (Avg. Metrics - Normalized 0-100)
           </h3>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
