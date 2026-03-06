@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { OverviewPage } from "./pages/OverviewPage";
 import { BanksPage } from "./pages/BanksPage";
@@ -9,7 +9,7 @@ import { ProfilesPage } from "./pages/ProfilesPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<OverviewPage />} />
@@ -20,6 +20,6 @@ export default function App() {
           <Route path="/profiles" element={<ProfilesPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
