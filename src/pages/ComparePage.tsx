@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
+import type { BankData, PrudentialBenchmark } from "../types";
 import { banks, prudentialBenchmarks } from "../data/banks";
-import { StatusBadge } from "../components/StatusBadge";
-import { cn, formatSYP } from "../lib/utils";
-import type { BankData } from "../types";
+import { cn, formatSYP, formatPercent, getMetricStatus, CHART_TOOLTIP_STYLE } from "../lib/utils";
 import {
   BarChart,
   Bar,
@@ -13,32 +12,48 @@ import {
   ResponsiveContainer,
   Legend,
   RadarChart,
+  Radar,
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  Radar,
 } from "recharts";
 import {
   AlertTriangle,
-  Shield,
+  TrendingUp,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 
-// Color palette for banks
-const BANK_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6"];
+// Bank colors for charts
+const BANK_COLORS = ["#3b82f6", "#ef4444", "#10b981"];
+
+interface MetricMapping {
+  key: keyof BankData;
+  label: string;
+  benchmarkIndex: number;
+}
+
+const METRICS: MetricMapping[] = [
+  { key: "equityToAssets", label: "Capital Adequacy", benchmarkIndex: 0 },
+  { key: "roa", label: "Return on Assets", benchmarkIndex: 1 },
+  { key: "roe", label: "Return on Equity", benchmarkIndex: 2 },
+  { key: "costToIncome", label: "Cost-to-Income", benchmarkIndex: 3 },
+  { key: "loansToDeposits", label: "Loans-to-Deposits", benchmarkIndex: 4 },
+  { key: "cashToAssets", label: "Cash-to-Assets", benchmarkIndex: 5 },
+];
 
 export function ComparePage() {
-  // Sort banks by total assets and get top 3 as defaults
+  // Sort banks by total assets and default to top 3
   const sortedByAssets = useMemo(
     () => [...banks].sort((a, b) => (b.totalAssets || 0) - (a.totalAssets || 0)),
     []
   );
 
-  const defaultBanks = [sortedByAssets[0], sortedByAssets[1], sortedByAssets[2]].map(
-    (b) => b.id
+  const defaultBankIds = [sortedByAssets[0]?.id, sortedByAssets[1]?.id, sortedByAssets[2]?.id].filter(
+    (id): id is number => id !== undefined
   );
 
-  const [selectedBankIds, setSelectedBankIds] = useState<number[]>(defaultBanks);
+  const [selectedBankIds, setSelectedBankIds] = useState<number[]>(defaultBankIds);
 
   // Get selected bank data
   const selectedBanks = useMemo(
@@ -49,36 +64,29 @@ export function ComparePage() {
     [selectedBankIds]
   );
 
-  // Calculate metrics for bar chart with sector average
+  // Get best performer for each metric
+
+  // Comparison data for bar chart
   const comparisonData = useMemo(() => {
     if (selectedBanks.length === 0) return [];
 
-    const metrics = [
-      { key: "roa", label: "ROA (%)" },
-      { key: "roe", label: "ROE (%)" },
-      { key: "equityToAssets", label: "E/A (%)" },
-      { key: "costToIncome", label: "C/I (%)" },
-      { key: "loansToDeposits", label: "L/D (%)" },
-      { key: "cashToAssets", label: "Cash/Assets (%)" },
-    ];
-
     // Calculate sector averages
-    const sectorAverages: Record<string, number> = {};
-    metrics.forEach((metric) => {
+    const sectorAverage: Record<string, number> = {};
+    METRICS.forEach((metric) => {
       const values = banks
-        .map((b) => b[metric.key as keyof BankData] as number)
+        .map((b) => b[metric.key] as number)
         .filter((v): v is number => typeof v === "number" && !isNaN(v));
-      sectorAverages[metric.key] = values.length > 0 ? values.reduce((a, b) => a + b) / values.length : 0;
+      sectorAverage[metric.key] = values.length > 0 ? values.reduce((a, b) => a + b) / values.length : 0;
     });
 
-    return metrics.map((metric) => {
+    return METRICS.map((metric) => {
       const dataPoint: Record<string, any> = {
         name: metric.label,
-        sectorAvg: parseFloat(sectorAverages[metric.key].toFixed(2)),
+        sectorAvg: parseFloat(sectorAverage[metric.key].toFixed(2)),
       };
 
       selectedBanks.forEach((bank) => {
-        const value = bank[metric.key as keyof BankData] as number;
+        const value = bank[metric.key] as number;
         dataPoint[bank.shortName] = value !== undefined ? parseFloat(value.toFixed(2)) : 0;
       });
 
@@ -86,98 +94,81 @@ export function ComparePage() {
     });
   }, [selectedBanks]);
 
-  // Calculate normalized radar data (0-100 scale)
+  // Radar chart data (normalized 0-100)
   const radarData = useMemo(() => {
     if (selectedBanks.length === 0) return [];
 
-    const normalizeMetric = (
-      value: number | undefined,
-      metric: string
-    ): number => {
+    const normalizeMetric = (value: number | undefined, benchmarkIndex: number): number => {
       if (value === undefined || isNaN(value)) return 0;
 
-      // Different normalization strategies based on metric
-      switch (metric) {
-        case "roa":
-        case "roe":
-          // Higher is better, cap at 20%
-          return Math.min((value / 20) * 100, 100);
-        case "equityToAssets":
-          // Higher is better, cap at 30%
-          return Math.min((value / 30) * 100, 100);
-        case "costToIncome":
-          // Lower is better, invert (100 - normalized)
-          return Math.max(0, 100 - (value / 100) * 100);
-        case "loansToDeposits":
-          // Lower is better for prudence, optimal around 75%
-          return value > 75 ? Math.max(0, 100 - (value - 75)) : value * 1.33;
-        case "cashToAssets":
-          // Higher is better, cap at 20%
-          return Math.min((value / 20) * 100, 100);
-        case "npl":
-          // Lower is better, invert
-          return Math.max(0, 100 - (value * 100) / 5);
-        default:
-          return 0;
+      const bench = prudentialBenchmarks[benchmarkIndex];
+
+      if (bench.higher_is_better) {
+        // For higher-is-better metrics, normalize based on good threshold
+        const normalized = (value / bench.thresholdGood) * 100;
+        return Math.min(normalized, 100);
+      } else {
+        // For lower-is-better metrics, invert
+        const normalized = 100 - (value / bench.thresholdGood) * 100;
+        return Math.max(normalized, 0);
       }
     };
 
-    const metrics = ["roa", "roe", "equityToAssets", "costToIncome", "loansToDeposits", "cashToAssets"];
-    const labels: Record<string, string> = {
-      roa: "ROA",
-      roe: "ROE",
-      equityToAssets: "Capital",
-      costToIncome: "Efficiency",
-      loansToDeposits: "Stability",
-      cashToAssets: "Liquidity",
-    };
+    const radarLabels = ["Capital", "ROA", "ROE", "Efficiency", "Stability", "Liquidity"];
 
-    return metrics.map((metric) => {
-      const dataPoint: Record<string, any> = {
-        subject: labels[metric],
-      };
+    return radarLabels.map((label, idx) => {
+      const metric = METRICS[idx];
+      const dataPoint: Record<string, any> = { subject: label };
 
       selectedBanks.forEach((bank) => {
-        const value = bank[metric as keyof BankData] as number;
-        dataPoint[bank.shortName] = normalizeMetric(value, metric);
+        const value = bank[metric.key] as number;
+        dataPoint[bank.shortName] = normalizeMetric(value, metric.benchmarkIndex);
       });
 
       return dataPoint;
     });
   }, [selectedBanks]);
 
-  // Calculate performance ranking for KPI cards
-  const getPerformanceColor = (
-    value: number | undefined,
-    metric: string
-  ): string => {
-    if (value === undefined) return "bg-gray-100 text-gray-700";
+  // Prudential compliance table data
+  const complianceTableData = useMemo(() => {
+    return METRICS.map((metric) => {
+      const bench = prudentialBenchmarks[metric.benchmarkIndex];
+      const row: Record<string, any> = {
+        metric: metric.label,
+        benchmark: bench,
+      };
 
-    const allValues = selectedBanks
-      .map((b) => b[metric as keyof BankData] as number)
-      .filter((v): v is number => typeof v === "number");
+      selectedBanks.forEach((bank) => {
+        const value = bank[metric.key] as number;
+        const status = getMetricStatus(
+          value,
+          bench.thresholdGood,
+          bench.thresholdCaution,
+          bench.thresholdDanger,
+          bench.higher_is_better
+        );
+        row[`bank_${bank.id}`] = { value, status, bankId: bank.id };
+      });
 
-    if (allValues.length === 0) return "bg-gray-100 text-gray-700";
+      // Add sector average
+      const sectorValues = banks
+        .map((b) => b[metric.key] as number)
+        .filter((v): v is number => typeof v === "number" && !isNaN(v));
+      row.sectorAvg = sectorValues.length > 0 ? sectorValues.reduce((a, b) => a + b) / sectorValues.length : 0;
 
-    const min = Math.min(...allValues);
-    const max = Math.max(...allValues);
+      return row;
+    });
+  }, [selectedBanks]);
 
-    // Higher is better metrics
-    if (["roa", "roe", "equityToAssets", "cashToAssets"].includes(metric)) {
-      if (value === max) return "bg-green-100 text-green-700";
-      if (value === min) return "bg-red-100 text-red-700";
-      return "bg-yellow-100 text-yellow-700";
-    }
-
-    // Lower is better metrics
-    if (["costToIncome", "loansToDeposits"].includes(metric)) {
-      if (value === min) return "bg-green-100 text-green-700";
-      if (value === max) return "bg-red-100 text-red-700";
-      return "bg-yellow-100 text-yellow-700";
-    }
-
-    return "bg-gray-100 text-gray-700";
-  };
+  // KPI cards data
+  const kpiMetrics = [
+    { label: "Total Assets", key: "totalAssets" as keyof BankData, format: formatSYP },
+    { label: "Equity", key: "equity" as keyof BankData, format: formatSYP },
+    { label: "Net Profit", key: "netProfit" as keyof BankData, format: formatSYP },
+    { label: "ROA", key: "roa" as keyof BankData, format: (v: number) => formatPercent(v) },
+    { label: "ROE", key: "roe" as keyof BankData, format: (v: number) => formatPercent(v) },
+    { label: "Equity/Assets", key: "equityToAssets" as keyof BankData, format: (v: number) => formatPercent(v) },
+  ];
 
   const handleBankChange = (index: number, bankId: number) => {
     const newSelection = [...selectedBankIds];
@@ -185,37 +176,46 @@ export function ComparePage() {
     setSelectedBankIds(newSelection);
   };
 
+  const renderStatusDot = (status: "good" | "caution" | "danger") => {
+    const colors = {
+      good: "bg-emerald-500",
+      caution: "bg-amber-500",
+      danger: "bg-red-500",
+    };
+    return <div className={cn("w-2 h-2 rounded-full", colors[status])} />;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6 animate-fade-in-up">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-6 animate-enter">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Bank Comparison</h1>
+        <div className="card-surface p-6 border-l-4 border-blue-600">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Peer Comparison</h1>
           <p className="text-gray-600 dark:text-slate-400 mt-2">
-            Compare financial metrics and performance across Lebanese banks
+            Compare selected banks across key financial metrics and prudential benchmarks
           </p>
         </div>
 
         {/* Bank Selector */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
+        <div className="card-surface p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
             Select Banks to Compare
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex flex-wrap gap-4">
             {[0, 1, 2].map((index) => (
-              <div key={index}>
+              <div key={index} className="flex-1 min-w-xs">
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   Bank {index + 1}
                 </label>
                 <select
                   value={selectedBankIds[index] || ""}
                   onChange={(e) => handleBankChange(index, parseInt(e.target.value, 10))}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-gray-900 dark:text-slate-100 text-sm"
                 >
                   <option value="">Select a bank</option>
                   {sortedByAssets.map((bank) => (
                     <option key={bank.id} value={bank.id}>
-                      {bank.name}
+                      {bank.shortName}
                     </option>
                   ))}
                 </select>
@@ -226,136 +226,82 @@ export function ComparePage() {
 
         {selectedBanks.length > 0 && (
           <>
-            {/* KPI Cards */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-                Key Financial Indicators
+            {/* KPI Cards - Side by Side */}
+            <div className="card-surface p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
+                Key Performance Indicators
               </h2>
-              <div className="space-y-6">
-                {/* Total Assets */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">
-                    Total Assets
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedBanks.map((bank) => (
-                      <div
-                        key={bank.id}
-                        className={cn(
-                          "p-4 rounded-lg border-2",
-                          getPerformanceColor(bank.totalAssets, "totalAssets")
-                        )}
-                      >
-                        <div className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                          {bank.shortName}
-                        </div>
-                        <div className="text-2xl font-bold mt-2 dark:text-slate-100">
-                          {formatSYP(bank.totalAssets || 0)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="space-y-4">
+                {kpiMetrics.map((metric) => {
+                  const bestId = useMemo(() => {
+                    const values = selectedBanks.map((b) => ({
+                      id: b.id,
+                      value: b[metric.key] as number,
+                    }));
+                    // For most metrics, higher is better except C/I and L/D
+                    const isHigherBetter = !["costToIncome", "loansToDeposits"].includes(metric.key);
+                    if (isHigherBetter) {
+                      return values.reduce((best, cur) => (cur.value > best.value ? cur : best)).id;
+                    } else {
+                      return values.reduce((best, cur) => (cur.value < best.value ? cur : best)).id;
+                    }
+                  }, [metric.key, selectedBanks]);
 
-                {/* Equity */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">
-                    Equity
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedBanks.map((bank) => (
-                      <div
-                        key={bank.id}
-                        className={cn(
-                          "p-4 rounded-lg border-2",
-                          getPerformanceColor(bank.equity, "equityToAssets")
-                        )}
-                      >
-                        <div className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                          {bank.shortName}
-                        </div>
-                        <div className="text-2xl font-bold mt-2 dark:text-slate-100">
-                          {formatSYP(bank.equity || 0)}
-                        </div>
+                  return (
+                    <div key={metric.key}>
+                      <div className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        {metric.label}
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Net Profit */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">
-                    Net Profit
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedBanks.map((bank) => (
-                      <div
-                        key={bank.id}
-                        className={cn(
-                          "p-4 rounded-lg border-2",
-                          getPerformanceColor(bank.netProfit, "roa")
-                        )}
-                      >
-                        <div className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                          {bank.shortName}
-                        </div>
-                        <div className="text-2xl font-bold mt-2 dark:text-slate-100">
-                          {formatSYP(bank.netProfit || 0)}
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {selectedBanks.map((bank) => {
+                          const value = bank[metric.key] as number;
+                          const isBest = bank.id === bestId;
+                          return (
+                            <div
+                              key={bank.id}
+                              className={cn(
+                                "p-3 rounded-lg border",
+                                isBest
+                                  ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-900/50"
+                                  : "bg-gray-50 dark:bg-slate-700/50 border-gray-200 dark:border-slate-600"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-xs font-medium text-gray-600 dark:text-slate-400">
+                                    {bank.shortName}
+                                  </div>
+                                  <div className="text-lg font-bold mt-1 text-gray-900 dark:text-slate-100">
+                                    {metric.format(value)}
+                                  </div>
+                                </div>
+                                {isBest && <TrendingUp className="w-4 h-4 text-emerald-600" />}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Customer Deposits */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">
-                    Customer Deposits
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {selectedBanks.map((bank) => (
-                      <div
-                        key={bank.id}
-                        className={cn(
-                          "p-4 rounded-lg border-2",
-                          getPerformanceColor(bank.customerDeposits, "loansToDeposits")
-                        )}
-                      >
-                        <div className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                          {bank.shortName}
-                        </div>
-                        <div className="text-2xl font-bold mt-2 dark:text-slate-100">
-                          {formatSYP(bank.customerDeposits || 0)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Comparison Bar Chart */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-                Performance Metrics Comparison
+            {/* Grouped Bar Chart */}
+            <div className="card-surface p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
+                Metrics Comparison
               </h2>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={comparisonData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="name" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1f2937",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#f3f4f6",
-                    }}
-                    formatter={(value) =>
-                      typeof value === "number" ? value.toFixed(2) : value
-                    }
-                  />
-                  <Legend />
+              <p className="text-xs text-gray-600 dark:text-slate-400 mb-4">
+                6 key metrics with sector average benchmark
+              </p>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={comparisonData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} />
+                  <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                  <Legend fontSize={12} />
                   {selectedBanks.map((bank, idx) => (
                     <Bar
                       key={bank.id}
@@ -375,19 +321,19 @@ export function ComparePage() {
               </ResponsiveContainer>
             </div>
 
-            {/* Radar Chart Comparison */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-                Normalized Performance Profile
+            {/* Radar Chart */}
+            <div className="card-surface p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
+                Performance Profile
               </h2>
-              <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
-                All metrics normalized to 0-100 scale for direct comparison
+              <p className="text-xs text-gray-600 dark:text-slate-400 mb-4">
+                Normalized 0-100 scale - higher is better on all axes
               </p>
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={350}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="#f1f5f9" />
-                  <PolarAngleAxis dataKey="subject" stroke="#64748b" />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#cbd5e1" />
+                  <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={12} />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#cbd5e1" fontSize={11} />
                   {selectedBanks.map((bank, idx) => (
                     <Radar
                       key={bank.id}
@@ -398,209 +344,142 @@ export function ComparePage() {
                       fillOpacity={0.25}
                     />
                   ))}
-                  <Legend />
+                  <Legend fontSize={12} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Compliance Comparison */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
+            {/* Prudential Compliance Table */}
+            <div className="card-surface p-6 overflow-x-auto">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">
                 Prudential Compliance
               </h2>
-              <div className="space-y-6">
-                {[
-                  {
-                    label: "Capital Adequacy (E/A)",
-                    benchmark: prudentialBenchmarks[0],
-                    getter: (b: BankData) => b.equityToAssets,
-                  },
-                  {
-                    label: "Loan-to-Deposit Ratio",
-                    benchmark: prudentialBenchmarks[4],
-                    getter: (b: BankData) => b.loansToDeposits,
-                  },
-                  {
-                    label: "Cost-to-Income Ratio",
-                    benchmark: prudentialBenchmarks[3],
-                    getter: (b: BankData) => b.costToIncome,
-                  },
-                  {
-                    label: "Liquidity (Cash/Assets)",
-                    benchmark: prudentialBenchmarks[5],
-                    getter: (b: BankData) => b.cashToAssets,
-                  },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
-                        {item.label}
-                      </h3>
-                      <div className="text-xs text-gray-500 dark:text-slate-400">
-                        Target: {item.benchmark.higher_is_better ? `≥ ${item.benchmark.thresholdGood}%` : `≤ ${item.benchmark.thresholdGood}%`}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {selectedBanks.map((bank) => {
-                        const value = item.getter(bank);
-                        const isCompliant =
-                          value !== undefined &&
-                          (item.benchmark.higher_is_better
-                            ? value >= item.benchmark.thresholdGood
-                            : value <= item.benchmark.thresholdGood);
-
-                        return (
-                          <div
-                            key={bank.id}
-                            className={cn(
-                              "p-4 rounded-lg border-2",
-                              isCompliant
-                                ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-900/50"
-                                : "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-900/50"
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                                  {bank.shortName}
-                                </div>
-                                <div className="text-lg font-bold mt-1 dark:text-slate-100">
-                                  {value?.toFixed(2)}%
-                                </div>
+              <table className="data-table w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    {selectedBanks.map((bank) => (
+                      <th key={bank.id} className="text-center">{bank.shortName}</th>
+                    ))}
+                    <th className="text-center">Sector Avg</th>
+                    <th className="text-center">CBS Target</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {complianceTableData.map((row, idx) => {
+                    const bench = row.benchmark as PrudentialBenchmark;
+                    return (
+                      <tr key={idx}>
+                        <td className="font-medium text-gray-900 dark:text-slate-100">
+                          {row.metric}
+                        </td>
+                        {selectedBanks.map((bank) => {
+                          const data = row[`bank_${bank.id}`];
+                          return (
+                            <td key={bank.id} className="text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                {renderStatusDot(data.status)}
+                                <span className="text-gray-900 dark:text-slate-100">
+                                  {data.value.toFixed(1)}%
+                                </span>
                               </div>
-                              <div>
-                                {isCompliant ? (
-                                  <CheckCircle className="w-6 h-6 text-green-600" />
-                                ) : (
-                                  <AlertTriangle className="w-6 h-6 text-red-600" />
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                            </td>
+                          );
+                        })}
+                        <td className="text-center numeric text-gray-700 dark:text-slate-300">
+                          {row.sectorAvg.toFixed(1)}%
+                        </td>
+                        <td className="text-center numeric text-gray-700 dark:text-slate-300 font-medium">
+                          {bench.higher_is_better ? "≥" : "≤"} {bench.thresholdGood}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            {/* Quick Profile Cards */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">
-                Bank Profiles
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {selectedBanks.map((bank) => (
-                  <div
-                    key={bank.id}
-                    className="border-2 border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                          {bank.shortName}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-slate-400">{bank.type}</p>
-                      </div>
+            {/* Bank Profiles */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {selectedBanks.map((bank) => (
+                <div key={bank.id} className="card-surface p-6">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+                      {bank.shortName}
+                    </h3>
+                    <div className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+                      {bank.name}
                     </div>
-
-                    <div className="space-y-3">
-                      {/* Audit Opinion */}
-                      <div>
-                        <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase">
-                          Audit Opinion
-                        </div>
-                        <div className="mt-1">
-                          <StatusBadge
-                            variant={
-                              bank.auditOpinion === "Clean"
-                                ? "audit"
-                                : bank.auditOpinion === "Qualified"
-                                  ? "audit"
-                                  : "risk"
-                            }
-                            label={bank.auditOpinion || "N/A"}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Risk Rating */}
-                      <div>
-                        <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase">
-                          Risk Rating
-                        </div>
-                        <div className="mt-1">
-                          <StatusBadge
-                            variant={
-                              bank.riskRating === "Low"
-                                ? "custom"
-                                : bank.riskRating === "Medium"
-                                  ? "custom"
-                                  : "risk"
-                            }
-                            label={bank.riskRating || "N/A"}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Auditor */}
-                      <div>
-                        <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase">
-                          Auditor
-                        </div>
-                        <p className="text-sm text-gray-900 dark:text-slate-100 mt-1">
-                          {bank.auditor || "N/A"}
-                        </p>
-                      </div>
-
-                      {/* Reporting Period */}
-                      <div>
-                        <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase">
-                          Reporting Period
-                        </div>
-                        <p className="text-sm text-gray-900 dark:text-slate-100 mt-1">
-                          {bank.reportingPeriod || "N/A"}
-                        </p>
-                      </div>
-
-                      {/* Lebanese Exposure */}
-                      <div>
-                        <div className="text-xs font-semibold text-gray-600 uppercase">
-                          Lebanese Exposure
-                        </div>
-                        <div className="mt-1">
-                          {bank.lebaneseExposure ? (
-                            <div className="flex items-center text-sm text-orange-600 font-medium">
-                              <AlertTriangle className="w-4 h-4 mr-2" />
-                              High Exposure
-                            </div>
-                          ) : (
-                            <div className="flex items-center text-sm text-green-600 font-medium">
-                              <Shield className="w-4 h-4 mr-2" />
-                              Limited Exposure
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                    <div className="text-xs font-medium text-gray-500 dark:text-slate-500 mt-1">
+                      {bank.type}
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="space-y-3 text-sm">
+                    {/* Audit Opinion */}
+                    <div>
+                      <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase mb-1">
+                        Audit Opinion
+                      </div>
+                      <div className={cn(
+                        "inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-medium",
+                        bank.auditOpinion === "Clean"
+                          ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+                          : bank.auditOpinion === "Qualified"
+                            ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                            : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                      )}>
+                        {bank.auditOpinion === "Clean" ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                        {bank.auditOpinion}
+                      </div>
+                    </div>
+
+                    {/* Risk Rating */}
+                    <div>
+                      <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase mb-1">
+                        Risk Rating
+                      </div>
+                      <div className={cn(
+                        "inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-medium",
+                        bank.riskRating === "Low"
+                          ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+                          : bank.riskRating === "Medium"
+                            ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                            : bank.riskRating === "High"
+                              ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                              : "bg-red-200 dark:bg-red-900/50 text-red-800 dark:text-red-200"
+                      )}>
+                        {bank.riskRating}
+                      </div>
+                    </div>
+
+                    {/* Lebanese Exposure */}
+                    {bank.lebaneseExposure && (
+                      <div>
+                        <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase mb-1">
+                          Exposure
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+                          <AlertTriangle className="w-3 h-3" />
+                          Lebanese Exposure
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </>
         )}
 
         {selectedBanks.length === 0 && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-900/50 p-6 rounded-lg">
-            <div className="flex items-start">
-              <AlertTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 mr-4 flex-shrink-0 mt-0.5" />
+          <div className="card-surface p-6 border-l-4 border-amber-500 bg-amber-50/50 dark:bg-amber-900/20">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
-                  No banks selected
-                </h3>
-                <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                  Please select at least one bank to view comparison data.
+                <h3 className="font-semibold text-amber-900 dark:text-amber-200">No banks selected</h3>
+                <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">
+                  Select at least one bank from the dropdown above to begin comparison.
                 </p>
               </div>
             </div>

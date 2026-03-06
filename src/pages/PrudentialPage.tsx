@@ -1,271 +1,301 @@
 import { useState } from "react";
+import type { BankData } from "../data/banks";
 import { banks, prudentialBenchmarks } from "../data/banks";
-import { MetricBarChart } from "../components/charts/MetricBarChart";
-import { HeatmapTable } from "../components/charts/HeatmapTable";
 import { cn, getMetricStatus } from "../lib/utils";
-import type { BankData } from "../types";
 import {
-  ShieldCheck,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  ReferenceLine,
+} from "recharts";
 
 export function PrudentialPage() {
-  const [expandedBenchmark, setExpandedBenchmark] = useState<number | null>(null);
-  const [selectedMetric, setSelectedMetric] = useState<string>("equityToAssets");
+  const [selectedMetric, setSelectedMetric] = useState<number>(0);
 
-  const metricOptions: { key: keyof BankData; label: string; unit: string }[] = [
-    { key: "equityToAssets", label: "Equity/Assets Ratio", unit: "%" },
-    { key: "roa", label: "Return on Assets", unit: "%" },
-    { key: "roe", label: "Return on Equity", unit: "%" },
-    { key: "costToIncome", label: "Cost-to-Income Ratio", unit: "%" },
-    { key: "loansToDeposits", label: "Loans-to-Deposits Ratio", unit: "%" },
-    { key: "cashToAssets", label: "Cash-to-Assets Ratio", unit: "%" },
-  ];
+  const bench = prudentialBenchmarks[selectedMetric];
+  const metricKey: keyof BankData = [
+    "equityToAssets",
+    "roa",
+    "roe",
+    "costToIncome",
+    "loansToDeposits",
+    "cashToAssets",
+  ][selectedMetric] as keyof BankData;
 
-  const currentMetric = metricOptions.find((m) => m.key === selectedMetric) || metricOptions[0];
-  const currentBenchmark = prudentialBenchmarks.find(
-    (b) =>
-      b.metric.toLowerCase().includes(currentMetric.label.toLowerCase().split(" ")[0]) ||
-      currentMetric.label.toLowerCase().includes(b.metric.toLowerCase().split(" ")[0])
-  );
+  // Prepare chart data
+  const chartData = banks
+    .map((bank) => {
+      const value = bank[metricKey] as number;
+      const status = getMetricStatus(
+        value,
+        bench.thresholdGood,
+        bench.thresholdCaution,
+        bench.thresholdDanger,
+        bench.higher_is_better
+      );
+      return {
+        name: bank.shortName,
+        value,
+        status,
+      };
+    })
+    .sort((a, b) => b.value - a.value);
+
+  const getBarColor = (status: "good" | "caution" | "danger") => {
+    switch (status) {
+      case "good":
+        return "#10b981";
+      case "caution":
+        return "#f59e0b";
+      case "danger":
+        return "#ef4444";
+    }
+  };
+
+  // Compliance matrix data
+  const complianceData = banks.map((bank) => {
+    const scores = prudentialBenchmarks.map((b, i) => {
+      const key: keyof BankData = [
+        "equityToAssets",
+        "roa",
+        "roe",
+        "costToIncome",
+        "loansToDeposits",
+        "cashToAssets",
+      ][i] as keyof BankData;
+      const value = bank[key] as number;
+      return getMetricStatus(
+        value,
+        b.thresholdGood,
+        b.thresholdCaution,
+        b.thresholdDanger,
+        b.higher_is_better
+      );
+    });
+    const compliantCount = scores.filter((s) => s === "good").length;
+    return { bank, scores, compliantCount };
+  });
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      {/* Benchmark Reference Cards */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
-        <div className="flex items-center gap-2 mb-4">
-          <ShieldCheck className="h-5 w-5 text-blue-600" />
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Prudential Benchmarks Reference
-          </h3>
-        </div>
-        <div className="space-y-2">
-          {prudentialBenchmarks.map((bench, i) => (
-            <div
-              key={i}
-              className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
-            >
-              <button
-                className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
-                onClick={() =>
-                  setExpandedBenchmark(expandedBenchmark === i ? null : i)
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                    {bench.metric}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    ({bench.unit})
-                  </span>
-                </div>
-                {expandedBenchmark === i ? (
-                  <ChevronUp className="h-4 w-4 text-slate-400" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
-                )}
-              </button>
-              {expandedBenchmark === i && (
-                <div className="px-3 pb-3 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-3">
-                  <p className="text-xs text-slate-600 dark:text-slate-300">{bench.description}</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2.5">
-                      <p className="text-[10px] font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
-                        Basel III / BCBS
-                      </p>
-                      <p className="text-xs text-slate-900 dark:text-slate-100">{bench.baselStandard}</p>
-                    </div>
-                    <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-2.5">
-                      <p className="text-[10px] font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-0.5">
-                        CBS Requirement
-                      </p>
-                      <p className="text-xs text-slate-900 dark:text-slate-100">
-                        {bench.cbsRequirement}
-                      </p>
-                    </div>
-                    <div className="bg-emerald-50 dark:bg-emerald-900/30 rounded-lg p-2.5">
-                      <p className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0.5">
-                        International Best Practice
-                      </p>
-                      <p className="text-xs text-slate-900 dark:text-slate-100">
-                        {bench.internationalBest}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-[10px]">
-                    <div className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      Good: {bench.higher_is_better ? ">" : "<"}{" "}
-                      {bench.thresholdGood}
-                      {bench.unit}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                      Caution: {bench.higher_is_better ? ">" : "<"}{" "}
-                      {bench.thresholdCaution}
-                      {bench.unit}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                      Danger: {bench.higher_is_better ? "<" : ">"}{" "}
-                      {bench.thresholdDanger}
-                      {bench.unit}
-                    </div>
-                  </div>
-                </div>
-              )}
+    <div className="space-y-3 animate-enter">
+      {/* Benchmark Reference Cards - 3x2 Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        {prudentialBenchmarks.map((b, i) => (
+          <div key={i} className="card-surface p-3 text-xs">
+            <div className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+              {b.metric}
             </div>
-          ))}
-        </div>
+            <div className="space-y-1.5 mb-2.5">
+              <div className="text-[10px] text-slate-600 dark:text-slate-400">
+                {b.cbsRequirement}
+              </div>
+              <div className="flex gap-1.5 text-[9px] font-medium">
+                <div className="flex items-center gap-1">
+                  <span className="status-dot green" />
+                  Good: {b.higher_is_better ? ">" : "<"} {b.thresholdGood}
+                </div>
+              </div>
+              <div className="flex gap-1.5 text-[9px]">
+                <div className="flex items-center gap-1">
+                  <span className="status-dot amber" />
+                  Caution: {b.higher_is_better ? ">" : "<"} {b.thresholdCaution}
+                </div>
+              </div>
+              <div className="flex gap-1.5 text-[9px]">
+                <div className="flex items-center gap-1">
+                  <span className="status-dot red" />
+                  Danger: {b.higher_is_better ? "<" : ">"} {b.thresholdDanger}
+                </div>
+              </div>
+            </div>
+            <div className="text-[8px] text-slate-500 dark:text-slate-500 border-t border-slate-200 dark:border-slate-700 pt-1.5">
+              Higher is better: {b.higher_is_better ? "Yes" : "No"}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Metric Selector + Chart */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          {metricOptions.map((opt) => (
+      {/* Metric Selector Pills */}
+      <div className="card-surface p-2.5 flex gap-1.5 flex-wrap">
+        {prudentialBenchmarks.map((_, i) => {
+          const shortLabels = [
+            "Capital Adequacy",
+            "ROA",
+            "ROE",
+            "Cost-to-Income",
+            "Loans-to-Deposits",
+            "Cash-to-Assets",
+          ];
+          return (
             <button
-              key={opt.key}
-              onClick={() => setSelectedMetric(opt.key)}
+              key={i}
+              onClick={() => setSelectedMetric(i)}
               className={cn(
-                "px-3 py-1.5 text-xs rounded-lg font-medium transition-colors",
-                selectedMetric === opt.key
-                  ? "bg-blue-600 text-white"
-                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                "px-2.5 py-1 text-xs font-medium rounded transition-all",
+                selectedMetric === i
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
               )}
             >
-              {opt.label}
+              {shortLabels[i]}
             </button>
-          ))}
-        </div>
-
-        <MetricBarChart
-          banks={banks}
-          metric={currentMetric.key as keyof BankData}
-          title={`${currentMetric.label} by Bank`}
-          unit={currentMetric.unit}
-          higherIsBetter={currentBenchmark?.higher_is_better ?? true}
-          thresholds={
-            currentBenchmark
-              ? {
-                  good: currentBenchmark.thresholdGood,
-                  caution: currentBenchmark.thresholdCaution,
-                  danger: currentBenchmark.thresholdDanger,
-                }
-              : undefined
-          }
-          referenceLine={
-            currentBenchmark
-              ? {
-                  value: currentBenchmark.thresholdCaution,
-                  label: "Caution Threshold",
-                }
-              : undefined
-          }
-        />
+          );
+        })}
       </div>
 
-      {/* Bank Compliance Summary Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 card-hover">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
-          Compliance Summary (All Metrics)
-        </h3>
+      {/* Horizontal Bar Chart */}
+      <div className="card-surface p-3">
+        <div className="mb-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
+          {bench.metric} ({bench.unit})
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 5, right: 20, bottom: 5, left: 60 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <XAxis
+              dataKey="name"
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              tick={{ fontSize: 11 }}
+            />
+            <YAxis
+              type="number"
+              tick={{ fontSize: 11 }}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "6px",
+                fontSize: "11px",
+              }}
+              formatter={(value: any) => [value.toFixed(2), bench.metric]}
+            />
+            <ReferenceLine
+              y={bench.thresholdGood}
+              stroke="#10b981"
+              strokeDasharray="4 4"
+              label={{ value: "Good", position: "insideLeft", fill: "#10b981", fontSize: 10 }}
+            />
+            <ReferenceLine
+              y={bench.thresholdCaution}
+              stroke="#f59e0b"
+              strokeDasharray="4 4"
+              label={{ value: "Caution", position: "insideLeft", fill: "#f59e0b", fontSize: 10 }}
+            />
+            <Bar dataKey="value" fill="#3b82f6" radius={[2, 2, 0, 0]}>
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getBarColor(entry.status)} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Compliance Summary Matrix - Dense Table */}
+      <div className="card-surface overflow-hidden">
+        <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
+          <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+            Compliance Summary (All 6 Metrics)
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700">
-                <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-300">
-                  Bank
-                </th>
-                {prudentialBenchmarks.map((b) => (
-                  <th
-                    key={b.metric}
-                    className="text-center py-2 px-2 font-medium text-slate-600 dark:text-slate-300"
-                  >
-                    {b.metric.split("(")[0].trim().split(" ").slice(0, 2).join(" ")}
+              <tr>
+                <th className="text-left w-20">Bank</th>
+                {prudentialBenchmarks.map((b, i) => (
+                  <th key={i} className="text-center w-16">
+                    <div className="text-[9px] leading-tight">
+                      {b.metric.split("(")[0].trim().split(" ").slice(0, 2).join(" ")}
+                    </div>
                   </th>
                 ))}
-                <th className="text-center py-2 px-2 font-medium text-slate-600 dark:text-slate-300">
-                  Score
-                </th>
+                <th className="text-center w-12">Score</th>
               </tr>
             </thead>
             <tbody>
-              {[...banks]
-                .sort((a, b) => b.totalAssets - a.totalAssets)
-                .map((bank) => {
-                  let goodCount = 0;
-                  const metricKeys: (keyof BankData)[] = [
-                    "equityToAssets",
-                    "roa",
-                    "roe",
-                    "costToIncome",
-                    "loansToDeposits",
-                    "cashToAssets",
-                  ];
-                  const statuses = prudentialBenchmarks.map((bench, i) => {
-                    const val = bank[metricKeys[i]] as number;
-                    const status = getMetricStatus(
-                      val,
-                      bench.thresholdGood,
-                      bench.thresholdCaution,
-                      bench.thresholdDanger,
-                      bench.higher_is_better
-                    );
-                    if (status === "good") goodCount++;
-                    return status;
-                  });
-
-                  return (
-                    <tr
-                      key={bank.id}
-                      className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
-                    >
-                      <td className="py-1.5 px-2 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                        {bank.shortName}
-                      </td>
-                      {statuses.map((status, i) => (
-                        <td key={i} className="py-1.5 px-1 text-center">
-                          <span
-                            className={cn(
-                              "inline-block w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center mx-auto",
-                              status === "good" && "bg-emerald-100 text-emerald-700",
-                              status === "caution" && "bg-amber-100 text-amber-700",
-                              status === "danger" && "bg-red-100 text-red-700"
-                            )}
-                          >
-                            {status === "good"
-                              ? "\u2713"
-                              : status === "caution"
-                              ? "!"
-                              : "\u2717"}
-                          </span>
-                        </td>
-                      ))}
-                      <td className="py-1.5 px-2 text-center font-semibold">
+              {complianceData
+                .sort((a, b) => b.bank.totalAssets - a.bank.totalAssets)
+                .map((row, idx) => (
+                  <tr
+                    key={row.bank.id}
+                    className={cn(
+                      idx % 2 === 0 ? "bg-white dark:bg-slate-800/50" : "bg-slate-50/50 dark:bg-slate-900/20"
+                    )}
+                  >
+                    <td className="font-medium text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap">
+                      {row.bank.shortName}
+                    </td>
+                    {row.scores.map((status, i) => (
+                      <td key={i} className="text-center">
                         <span
                           className={cn(
-                            "text-xs",
-                            goodCount >= 5
-                              ? "text-emerald-600"
-                              : goodCount >= 3
-                              ? "text-amber-600"
-                              : "text-red-600"
+                            "inline-block w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center",
+                            status === "good" && "bg-emerald-100 text-emerald-700",
+                            status === "caution" && "bg-amber-100 text-amber-700",
+                            status === "danger" && "bg-red-100 text-red-700"
                           )}
                         >
-                          {goodCount}/{prudentialBenchmarks.length}
+                          {status === "good" ? "✓" : status === "caution" ? "!" : "✗"}
                         </span>
                       </td>
-                    </tr>
-                  );
-                })}
+                    ))}
+                    <td className="text-center font-semibold text-xs">
+                      <span
+                        className={cn(
+                          row.compliantCount >= 5
+                            ? "text-emerald-600"
+                            : row.compliantCount >= 3
+                            ? "text-amber-600"
+                            : "text-red-600"
+                        )}
+                      >
+                        {row.compliantCount}/6
+                      </span>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Full Heatmap */}
-      <HeatmapTable banks={banks} />
+      {/* Benchmark Details */}
+      <div className="card-surface p-3 text-xs space-y-2">
+        <div className="font-semibold text-slate-900 dark:text-slate-100">
+          {bench.metric} - Details
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2 border border-blue-200 dark:border-blue-800">
+            <div className="font-semibold text-blue-900 dark:text-blue-100 text-[10px] uppercase mb-1">
+              Basel III / BCBS
+            </div>
+            <div className="text-slate-700 dark:text-slate-300">{bench.baselStandard}</div>
+          </div>
+          <div className="bg-purple-50 dark:bg-purple-900/20 rounded p-2 border border-purple-200 dark:border-purple-800">
+            <div className="font-semibold text-purple-900 dark:text-purple-100 text-[10px] uppercase mb-1">
+              CBS Requirement
+            </div>
+            <div className="text-slate-700 dark:text-slate-300">{bench.cbsRequirement}</div>
+          </div>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded p-2 border border-emerald-200 dark:border-emerald-800">
+            <div className="font-semibold text-emerald-900 dark:text-emerald-100 text-[10px] uppercase mb-1">
+              International Best
+            </div>
+            <div className="text-slate-700 dark:text-slate-300">{bench.internationalBest}</div>
+          </div>
+        </div>
+        <div className="text-slate-600 dark:text-slate-400 italic">{bench.description}</div>
+      </div>
     </div>
   );
 }
