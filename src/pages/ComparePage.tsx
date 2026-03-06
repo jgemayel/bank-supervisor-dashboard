@@ -40,6 +40,7 @@ const METRICS: MetricMapping[] = [
   { key: "costToIncome", label: "Cost-to-Income", benchmarkIndex: 3 },
   { key: "loansToDeposits", label: "Loans-to-Deposits", benchmarkIndex: 4 },
   { key: "cashToAssets", label: "Cash-to-Assets", benchmarkIndex: 5 },
+  { key: "nplRatio", label: "NPL Ratio", benchmarkIndex: -1 },
 ];
 
 export function ComparePage() {
@@ -73,9 +74,19 @@ export function ComparePage() {
     // Calculate sector averages
     const sectorAverage: Record<string, number> = {};
     METRICS.forEach((metric) => {
-      const values = banks
-        .map((b) => b[metric.key] as number)
-        .filter((v): v is number => typeof v === "number" && !isNaN(v));
+      let values: number[];
+
+      if (metric.key === "nplRatio") {
+        // For NPL, filter out null values
+        values = banks
+          .map((b) => b[metric.key] as number | null)
+          .filter((v): v is number => v !== null && typeof v === "number" && !isNaN(v));
+      } else {
+        values = banks
+          .map((b) => b[metric.key] as number)
+          .filter((v): v is number => typeof v === "number" && !isNaN(v));
+      }
+
       sectorAverage[metric.key] = values.length > 0 ? values.reduce((a, b) => a + b) / values.length : 0;
     });
 
@@ -86,8 +97,10 @@ export function ComparePage() {
       };
 
       selectedBanks.forEach((bank) => {
-        const value = bank[metric.key] as number;
-        dataPoint[bank.shortName] = value !== undefined ? parseFloat(value.toFixed(2)) : 0;
+        const value = metric.key === "nplRatio"
+          ? (bank[metric.key] as number | null)
+          : (bank[metric.key] as number);
+        dataPoint[bank.shortName] = value !== undefined && value !== null ? parseFloat(value.toFixed(2)) : 0;
       });
 
       return dataPoint;
@@ -114,15 +127,27 @@ export function ComparePage() {
       }
     };
 
-    const radarLabels = ["Capital", "ROA", "ROE", "Efficiency", "Stability", "Liquidity"];
+    const radarLabels = ["Capital", "ROA", "ROE", "Efficiency", "Stability", "Liquidity", "NPL"];
 
     return radarLabels.map((label, idx) => {
       const metric = METRICS[idx];
       const dataPoint: Record<string, any> = { subject: label };
 
       selectedBanks.forEach((bank) => {
-        const value = bank[metric.key] as number;
-        dataPoint[bank.shortName] = normalizeMetric(value, metric.benchmarkIndex);
+        // For NPL (index 6), handle specially
+        if (idx === 6) {
+          const nplValue = bank.nplRatio;
+          if (nplValue === null || nplValue === undefined) {
+            dataPoint[bank.shortName] = 0;
+          } else {
+            // Lower is better, normalize against 3% good threshold
+            const normalized = Math.max(0, 100 - (nplValue / 3) * 100);
+            dataPoint[bank.shortName] = Math.max(normalized, 0);
+          }
+        } else {
+          const value = bank[metric.key] as number;
+          dataPoint[bank.shortName] = normalizeMetric(value, metric.benchmarkIndex);
+        }
       });
 
       return dataPoint;
@@ -132,28 +157,65 @@ export function ComparePage() {
   // Prudential compliance table data
   const complianceTableData = useMemo(() => {
     return METRICS.map((metric) => {
-      const bench = prudentialBenchmarks[metric.benchmarkIndex];
       const row: Record<string, any> = {
         metric: metric.label,
-        benchmark: bench,
       };
 
+      // For NPL (benchmarkIndex -1), use a local benchmark object
+      let bench: PrudentialBenchmark;
+      if (metric.benchmarkIndex === -1) {
+        const nplBench = {
+          thresholdGood: 3,
+          thresholdCaution: 5,
+          thresholdDanger: 10,
+          higher_is_better: false,
+        };
+        bench = nplBench as any;
+      } else {
+        bench = prudentialBenchmarks[metric.benchmarkIndex];
+      }
+
+      row.benchmark = bench;
+
       selectedBanks.forEach((bank) => {
-        const value = bank[metric.key] as number;
-        const status = getMetricStatus(
-          value,
-          bench.thresholdGood,
-          bench.thresholdCaution,
-          bench.thresholdDanger,
-          bench.higher_is_better
-        );
-        row[`bank_${bank.id}`] = { value, status, bankId: bank.id };
+        if (metric.key === "nplRatio") {
+          const value = bank.nplRatio;
+          if (value === null || value === undefined) {
+            row[`bank_${bank.id}`] = { value: null, status: "good", bankId: bank.id, isNA: true };
+          } else {
+            const status = getMetricStatus(
+              value,
+              bench.thresholdGood,
+              bench.thresholdCaution,
+              bench.thresholdDanger,
+              bench.higher_is_better
+            );
+            row[`bank_${bank.id}`] = { value, status, bankId: bank.id };
+          }
+        } else {
+          const value = bank[metric.key] as number;
+          const status = getMetricStatus(
+            value,
+            bench.thresholdGood,
+            bench.thresholdCaution,
+            bench.thresholdDanger,
+            bench.higher_is_better
+          );
+          row[`bank_${bank.id}`] = { value, status, bankId: bank.id };
+        }
       });
 
       // Add sector average
-      const sectorValues = banks
-        .map((b) => b[metric.key] as number)
-        .filter((v): v is number => typeof v === "number" && !isNaN(v));
+      let sectorValues: number[];
+      if (metric.key === "nplRatio") {
+        sectorValues = banks
+          .map((b) => b.nplRatio as number | null)
+          .filter((v): v is number => v !== null && typeof v === "number" && !isNaN(v));
+      } else {
+        sectorValues = banks
+          .map((b) => b[metric.key] as number)
+          .filter((v): v is number => typeof v === "number" && !isNaN(v));
+      }
       row.sectorAvg = sectorValues.length > 0 ? sectorValues.reduce((a, b) => a + b) / sectorValues.length : 0;
 
       return row;
@@ -168,6 +230,7 @@ export function ComparePage() {
     { label: "ROA", key: "roa" as keyof BankData, format: (v: number) => formatPercent(v) },
     { label: "ROE", key: "roe" as keyof BankData, format: (v: number) => formatPercent(v) },
     { label: "Equity/Assets", key: "equityToAssets" as keyof BankData, format: (v: number) => formatPercent(v) },
+    { label: "NPL Ratio", key: "nplRatio" as keyof BankData, format: (v: number) => v !== null ? formatPercent(v) : "N/A" },
   ];
 
   const handleBankChange = (index: number, bankId: number) => {
@@ -234,16 +297,21 @@ export function ComparePage() {
               <div className="space-y-4">
                 {kpiMetrics.map((metric) => {
                   const bestId = useMemo(() => {
-                    const values = selectedBanks.map((b) => ({
+                    let values = selectedBanks.map((b) => ({
                       id: b.id,
-                      value: b[metric.key] as number,
+                      value: b[metric.key] as number | null,
                     }));
-                    // For most metrics, higher is better except C/I and L/D
-                    const isHigherBetter = !["costToIncome", "loansToDeposits"].includes(metric.key);
+
+                    // Filter out null values for comparison
+                    const nonNullValues = values.filter((v): v is { id: number; value: number } => v.value !== null && v.value !== undefined);
+                    if (nonNullValues.length === 0) return null;
+
+                    // For most metrics, higher is better except C/I, L/D, and NPL
+                    const isHigherBetter = !["costToIncome", "loansToDeposits", "nplRatio"].includes(metric.key);
                     if (isHigherBetter) {
-                      return values.reduce((best, cur) => (cur.value > best.value ? cur : best)).id;
+                      return nonNullValues.reduce((best, cur) => (cur.value > best.value ? cur : best)).id;
                     } else {
-                      return values.reduce((best, cur) => (cur.value < best.value ? cur : best)).id;
+                      return nonNullValues.reduce((best, cur) => (cur.value < best.value ? cur : best)).id;
                     }
                   }, [metric.key, selectedBanks]);
 
@@ -254,8 +322,8 @@ export function ComparePage() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {selectedBanks.map((bank) => {
-                          const value = bank[metric.key] as number;
-                          const isBest = bank.id === bestId;
+                          const value = bank[metric.key] as number | null;
+                          const isBest = bestId !== null && bank.id === bestId;
                           return (
                             <div
                               key={bank.id}
@@ -272,7 +340,7 @@ export function ComparePage() {
                                     {bank.shortName}
                                   </div>
                                   <div className="text-lg font-bold mt-1 text-gray-900 dark:text-slate-100">
-                                    {metric.format(value)}
+                                    {value !== null && value !== undefined ? metric.format(value) : "N/A"}
                                   </div>
                                 </div>
                                 {isBest && <TrendingUp className="w-4 h-4 text-emerald-600" />}
@@ -293,7 +361,7 @@ export function ComparePage() {
                 Metrics Comparison
               </h2>
               <p className="text-xs text-gray-600 dark:text-slate-400 mb-4">
-                6 key metrics with sector average benchmark
+                7 key metrics with sector average benchmark
               </p>
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={comparisonData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
@@ -367,7 +435,7 @@ export function ComparePage() {
                 </thead>
                 <tbody>
                   {complianceTableData.map((row, idx) => {
-                    const bench = row.benchmark as PrudentialBenchmark;
+                    const bench = row.benchmark as any;
                     return (
                       <tr key={idx}>
                         <td className="font-medium text-gray-900 dark:text-slate-100">
@@ -380,7 +448,7 @@ export function ComparePage() {
                               <div className="flex items-center justify-center gap-2">
                                 {renderStatusDot(data.status)}
                                 <span className="text-gray-900 dark:text-slate-100">
-                                  {data.value.toFixed(1)}%
+                                  {data.isNA ? "N/A" : `${data.value.toFixed(1)}%`}
                                 </span>
                               </div>
                             </td>
@@ -452,6 +520,25 @@ export function ComparePage() {
                         {bank.riskRating}
                       </div>
                     </div>
+
+                    {/* NPL Ratio */}
+                    {bank.nplRatio !== null && bank.nplRatio !== undefined && (
+                      <div>
+                        <div className="text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase mb-1">
+                          NPL Ratio
+                        </div>
+                        <div className={cn(
+                          "inline-flex items-center gap-2 px-2 py-1 rounded text-xs font-medium",
+                          bank.nplRatio <= 3
+                            ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+                            : bank.nplRatio <= 5
+                              ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                              : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                        )}>
+                          {formatPercent(bank.nplRatio)}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Lebanese Exposure */}
                     {bank.lebaneseExposure && (

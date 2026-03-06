@@ -7,6 +7,7 @@ import {
   calculateHHI,
 } from "../lib/utils";
 
+
 /**
  * Command Center - Top-tier supervisory monitoring dashboard
  * 
@@ -28,7 +29,7 @@ export function OverviewPage() {
       {/* ====================================================================
           SECTOR HEALTH SCORECARD - 4 compact KPI tiles
           ==================================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Tile 1: Total Assets */}
         <div className="card-surface p-4 border-l-4 border-l-blue-500 dark:border-l-blue-400">
           <div className="metric-label">Total Sector Assets</div>
@@ -76,7 +77,25 @@ export function OverviewPage() {
             {sectorAggregates.emphasisOfMatter} EOM
           </div>
         </div>
-      </div>
+      
+        {/* Tile 5: NPL Coverage */}
+        {(() => {
+          const banksWithNPL = banks.filter((b) => b.nplRatio !== null);
+          const avgNPL = banksWithNPL.length > 0 ? banksWithNPL.reduce((s, b) => s + (b.nplRatio ?? 0), 0) / banksWithNPL.length : 0;
+          const nplColor = avgNPL > 10 ? "text-red-600" : avgNPL > 5 ? "text-amber-600" : "text-emerald-600";
+          return (
+            <div className="card-surface p-4 border-l-4 border-l-purple-500 dark:border-l-purple-400">
+              <div className="metric-label">Avg NPL Ratio</div>
+              <div className={`metric-value mt-2 ${nplColor}`}>
+                {avgNPL.toFixed(1)}%
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {banksWithNPL.length} of {banks.length} reporting
+              </div>
+            </div>
+          );
+        })()}
+</div>
 
       {/* ====================================================================
           ACTIVE SUPERVISORY ACTIONS (Left 60%) + SECTOR SNAPSHOT (Right 40%)
@@ -183,6 +202,17 @@ export function OverviewPage() {
                     bank: b.shortName,
                     issue: "Loss-Making Bank",
                     description: `Net loss: ${formatSYP(Math.abs(b.netProfit))}`,
+                    severity: "High" as const,
+                  })),
+                ...banks
+                  .filter(
+                    (b) =>
+                      b.nplRatio !== null && b.nplRatio > 10
+                  )
+                  .map((b) => ({
+                    bank: b.shortName,
+                    issue: "Elevated NPL Ratio",
+                    description: `NPL: ${b.nplRatio!.toFixed(1)}% (above 10% threshold)`,
                     severity: "High" as const,
                   })),
               ];
@@ -465,6 +495,9 @@ export function OverviewPage() {
                     <div className="text-[9px]">{bench.metric.substring(0, 10)}</div>
                   </th>
                 ))}
+                <th className="w-10 text-center" title="Non-Performing Loans Ratio">
+                  <div className="text-[9px]">NPL%</div>
+                </th>
                 <th className="w-12">Audit</th>
                 <th className="w-12">Risk</th>
               </tr>
@@ -548,6 +581,13 @@ export function OverviewPage() {
                           ? "Q"
                           : "E"}
                       </div>
+                    </td>
+                    <td className="text-center" title={bank.nplRatio !== null ? `${bank.nplRatio.toFixed(1)}%` : "N/A"}>
+                      {bank.nplRatio !== null ? (
+                        <div className={`status-dot ${bank.nplRatio > 10 ? "red" : bank.nplRatio > 5 ? "amber" : "green"} mx-auto`} />
+                      ) : (
+                        <span className="text-[9px] text-slate-400">—</span>
+                      )}
                     </td>
                     <td className="text-center">
                       <div className={`text-[10px] font-bold ${riskColor}`}>

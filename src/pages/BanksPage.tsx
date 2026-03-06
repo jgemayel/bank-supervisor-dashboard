@@ -32,6 +32,10 @@ export function BanksPage() {
   filtered.sort((a, b) => {
     const aVal = a[sortBy];
     const bVal = b[sortBy];
+    // Handle null values - push nulls to end
+    if (aVal === null && bVal === null) return 0;
+    if (aVal === null) return 1;
+    if (bVal === null) return -1;
     if (typeof aVal === "number" && typeof bVal === "number") {
       return sortDir === "asc" ? aVal - bVal : bVal - aVal;
     }
@@ -231,6 +235,16 @@ export function BanksPage() {
                     Cash/A% <SortIcon field="cashToAssets" />
                   </div>
                 </th>
+                <th className="numeric cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700" onClick={() => handleSort("nplRatio")}>
+                  <div className="flex items-center justify-end gap-1">
+                    NPL% <SortIcon field="nplRatio" />
+                  </div>
+                </th>
+                <th className="numeric cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700" onClick={() => handleSort("capitalAdequacyRatio")}>
+                  <div className="flex items-center justify-end gap-1">
+                    CAR% <SortIcon field="capitalAdequacyRatio" />
+                  </div>
+                </th>
                 <th className="text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700" onClick={() => handleSort("auditOpinion")}>
                   <div className="flex items-center justify-center gap-1">
                     Audit <SortIcon field="auditOpinion" />
@@ -289,6 +303,12 @@ export function BanksPage() {
                   </td>
                   <td className={cn("numeric text-xs font-mono", getMetricColor(bank.cashToAssets, "Cash/A"))}>
                     {bank.cashToAssets.toFixed(1)}
+                  </td>
+                  <td className={cn("numeric text-xs font-mono", bank.nplRatio !== null ? (bank.nplRatio > 10 ? "text-red-700 font-semibold" : bank.nplRatio > 5 ? "text-amber-600" : "bg-emerald-50 text-emerald-700") : "text-slate-400")}>
+                    {bank.nplRatio !== null ? bank.nplRatio.toFixed(1) : "—"}
+                  </td>
+                  <td className={cn("numeric text-xs font-mono", bank.capitalAdequacyRatio !== null ? (bank.capitalAdequacyRatio < 12 ? "text-red-700 font-semibold" : "text-slate-700 dark:text-slate-300") : "text-slate-400")}>
+                    {bank.capitalAdequacyRatio !== null ? bank.capitalAdequacyRatio.toFixed(1) : "—"}
                   </td>
                   <td className="text-center">
                     <span className={cn(

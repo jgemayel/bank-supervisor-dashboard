@@ -16,6 +16,8 @@ export interface BankData {
   costToIncome: number;
   loansToDeposits: number;
   cashToAssets: number;
+  nplRatio: number | null;
+  capitalAdequacyRatio: number | null;
   auditOpinion: "Clean" | "Qualified" | "Emphasis of Matter";
   auditReason: string;
   riskRating: "Low" | "Medium" | "High" | "Critical";

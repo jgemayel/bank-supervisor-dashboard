@@ -17,7 +17,20 @@ import {
 export function PrudentialPage() {
   const [selectedMetric, setSelectedMetric] = useState<number>(0);
 
-  const bench = prudentialBenchmarks[selectedMetric];
+  const nplBenchmark = {
+    metric: "NPL Ratio (IFRS 9 Stage 3)",
+    description: "Non-performing loans as percentage of total credit facilities. Based on IFRS 9 Stage 3 classification.",
+    baselStandard: "Basel III Pillar 3 Disclosure - No fixed limit",
+    cbsRequirement: "CBS monitoring threshold - sector specific",
+    internationalBest: "Well-managed banks typically < 3%",
+    unit: "%",
+    thresholdGood: 3,
+    thresholdCaution: 5,
+    thresholdDanger: 10,
+    higher_is_better: false,
+  };
+
+  const bench = selectedMetric < 6 ? prudentialBenchmarks[selectedMetric] : nplBenchmark;
   const metricKey: keyof BankData = [
     "equityToAssets",
     "roa",
@@ -25,10 +38,12 @@ export function PrudentialPage() {
     "costToIncome",
     "loansToDeposits",
     "cashToAssets",
+    "nplRatio",
   ][selectedMetric] as keyof BankData;
 
   // Prepare chart data
   const chartData = banks
+    .filter((bank) => bank[metricKey] !== null)
     .map((bank) => {
       const value = bank[metricKey] as number;
       const status = getMetricStatus(
@@ -46,6 +61,8 @@ export function PrudentialPage() {
     })
     .sort((a, b) => b.value - a.value);
 
+  const allBenchmarks = [...prudentialBenchmarks, nplBenchmark];
+
   const getBarColor = (status: "good" | "caution" | "danger") => {
     switch (status) {
       case "good":
@@ -59,7 +76,7 @@ export function PrudentialPage() {
 
   // Compliance matrix data
   const complianceData = banks.map((bank) => {
-    const scores = prudentialBenchmarks.map((b, i) => {
+    const scores = allBenchmarks.map((b, i) => {
       const key: keyof BankData = [
         "equityToAssets",
         "roa",
@@ -67,8 +84,12 @@ export function PrudentialPage() {
         "costToIncome",
         "loansToDeposits",
         "cashToAssets",
+        "nplRatio",
       ][i] as keyof BankData;
-      const value = bank[key] as number;
+      const value = bank[key] as number | null;
+      if (value === null) {
+        return null;
+      }
       return getMetricStatus(
         value,
         b.thresholdGood,
@@ -78,14 +99,15 @@ export function PrudentialPage() {
       );
     });
     const compliantCount = scores.filter((s) => s === "good").length;
-    return { bank, scores, compliantCount };
+    const metricsWithData = scores.filter((s) => s !== null).length;
+    return { bank, scores, compliantCount, metricsWithData };
   });
 
   return (
     <div className="space-y-3 animate-enter">
-      {/* Benchmark Reference Cards - 3x2 Grid */}
+      {/* Benchmark Reference Cards - 3x2 Grid (now 3x3 with NPL) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        {prudentialBenchmarks.map((b, i) => (
+        {allBenchmarks.map((b, i) => (
           <div key={i} className="card-surface p-3 text-xs">
             <div className="font-semibold text-slate-900 dark:text-slate-100 mb-2">
               {b.metric}
@@ -122,7 +144,7 @@ export function PrudentialPage() {
 
       {/* Metric Selector Pills */}
       <div className="card-surface p-2.5 flex gap-1.5 flex-wrap">
-        {prudentialBenchmarks.map((_, i) => {
+        {allBenchmarks.map((_, i) => {
           const shortLabels = [
             "Capital Adequacy",
             "ROA",
@@ -130,6 +152,7 @@ export function PrudentialPage() {
             "Cost-to-Income",
             "Loans-to-Deposits",
             "Cash-to-Assets",
+            "NPL Ratio",
           ];
           return (
             <button
@@ -204,7 +227,7 @@ export function PrudentialPage() {
       <div className="card-surface overflow-hidden">
         <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">
           <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-            Compliance Summary (All 6 Metrics)
+            Compliance Summary (All 7 Metrics)
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -212,10 +235,10 @@ export function PrudentialPage() {
             <thead>
               <tr>
                 <th className="text-left w-20">Bank</th>
-                {prudentialBenchmarks.map((b, i) => (
+                {allBenchmarks.map((b, i) => (
                   <th key={i} className="text-center w-16">
                     <div className="text-[9px] leading-tight">
-                      {b.metric.split("(")[0].trim().split(" ").slice(0, 2).join(" ")}
+                      {i === 6 ? "NPL" : b.metric.split("(")[0].trim().split(" ").slice(0, 2).join(" ")}
                     </div>
                   </th>
                 ))}
@@ -237,16 +260,20 @@ export function PrudentialPage() {
                     </td>
                     {row.scores.map((status, i) => (
                       <td key={i} className="text-center">
-                        <span
-                          className={cn(
-                            "inline-block w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center",
-                            status === "good" && "bg-emerald-100 text-emerald-700",
-                            status === "caution" && "bg-amber-100 text-amber-700",
-                            status === "danger" && "bg-red-100 text-red-700"
-                          )}
-                        >
-                          {status === "good" ? "✓" : status === "caution" ? "!" : "✗"}
-                        </span>
+                        {status === null ? (
+                          <span className="text-slate-400 dark:text-slate-500 text-[9px]">—</span>
+                        ) : (
+                          <span
+                            className={cn(
+                              "inline-block w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center",
+                              status === "good" && "bg-emerald-100 text-emerald-700",
+                              status === "caution" && "bg-amber-100 text-amber-700",
+                              status === "danger" && "bg-red-100 text-red-700"
+                            )}
+                          >
+                            {status === "good" ? "✓" : status === "caution" ? "!" : "✗"}
+                          </span>
+                        )}
                       </td>
                     ))}
                     <td className="text-center font-semibold text-xs">
@@ -259,7 +286,7 @@ export function PrudentialPage() {
                             : "text-red-600"
                         )}
                       >
-                        {row.compliantCount}/6
+                        {row.compliantCount}/{row.metricsWithData}
                       </span>
                     </td>
                   </tr>

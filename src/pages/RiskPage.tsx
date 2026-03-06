@@ -24,7 +24,7 @@ export function RiskPage() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Summary Ribbon */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="card-surface p-4 border-l-4 border-red-600">
           <div className="flex items-center gap-2 mb-1.5">
             <ShieldAlert className="h-4 w-4 text-red-600 shrink-0" />
@@ -89,6 +89,21 @@ export function RiskPage() {
             % of sector assets
           </p>
         </div>
+
+        <div className="card-surface p-4 border-l-4 border-orange-600">
+          <div className="flex items-center gap-2 mb-1.5">
+            <ShieldAlert className="h-4 w-4 text-orange-600 shrink-0" />
+            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase">
+              Elevated NPL
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">
+            {banks.filter(b => b.nplRatio !== null && b.nplRatio > 5).length}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">
+            NPL ratio above 5%
+          </p>
+        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -144,6 +159,9 @@ export function RiskPage() {
                     <th className="text-right py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-300">
                       Assets
                     </th>
+                    <th className="text-right py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-300">
+                      NPL%
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -182,6 +200,17 @@ export function RiskPage() {
                           </td>
                           <td className="py-2.5 px-3 text-right font-mono text-slate-700 dark:text-slate-300">
                             {formatSYP(bank.totalAssets)}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono">
+                            {bank.nplRatio === null ? (
+                              <span className="text-slate-400 dark:text-slate-500">—</span>
+                            ) : bank.nplRatio > 10 ? (
+                              <span className="text-red-600 dark:text-red-400 font-semibold">{bank.nplRatio.toFixed(1)}%</span>
+                            ) : bank.nplRatio > 5 ? (
+                              <span className="text-amber-600 dark:text-amber-400 font-semibold">{bank.nplRatio.toFixed(1)}%</span>
+                            ) : (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{bank.nplRatio.toFixed(1)}%</span>
+                            )}
                           </td>
                         </tr>
                       );

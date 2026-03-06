@@ -505,6 +505,53 @@ export function ProfilesPage() {
         })}
       </div>
 
+      {/* ─────────── ASSET QUALITY METRICS ─────────── */}
+      {(bank.nplRatio !== null || bank.capitalAdequacyRatio !== null) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {bank.nplRatio !== null && (
+            <div className={cn(
+              "card-surface rounded-xl border-l-4 p-5",
+              bank.nplRatio > 10 ? "border-l-red-500" : bank.nplRatio > 5 ? "border-l-amber-500" : "border-l-emerald-500"
+            )}>
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  NPL Ratio (IFRS 9 Stage 3)
+                </p>
+                <div className={cn("p-1.5 rounded-lg", bank.nplRatio > 10 ? "bg-red-50 dark:bg-red-950/30" : bank.nplRatio > 5 ? "bg-amber-50 dark:bg-amber-950/30" : "bg-emerald-50 dark:bg-emerald-950/30")}>
+                  <AlertTriangle className={cn("h-4 w-4", bank.nplRatio > 10 ? "text-red-600 dark:text-red-400" : bank.nplRatio > 5 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400")} />
+                </div>
+              </div>
+              <p className={cn("text-2xl font-bold tabular-nums", bank.nplRatio > 10 ? "text-red-600" : bank.nplRatio > 5 ? "text-amber-600" : "text-emerald-600 dark:text-emerald-400")}>
+                {bank.nplRatio.toFixed(1)}%
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {bank.nplRatio > 10 ? "Elevated - requires supervisory attention" : bank.nplRatio > 5 ? "Moderate - monitor closely" : "Healthy asset quality"}
+              </p>
+            </div>
+          )}
+          {bank.capitalAdequacyRatio !== null && (
+            <div className={cn(
+              "card-surface rounded-xl border-l-4 p-5",
+              bank.capitalAdequacyRatio < 12 ? "border-l-red-500" : "border-l-emerald-500"
+            )}>
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Capital Adequacy Ratio
+                </p>
+                <div className={cn("p-1.5 rounded-lg", bank.capitalAdequacyRatio < 12 ? "bg-red-50 dark:bg-red-950/30" : "bg-emerald-50 dark:bg-emerald-950/30")}>
+                  <Shield className={cn("h-4 w-4", bank.capitalAdequacyRatio < 12 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400")} />
+                </div>
+              </div>
+              <p className={cn("text-2xl font-bold tabular-nums", bank.capitalAdequacyRatio < 12 ? "text-red-600" : "text-emerald-600 dark:text-emerald-400")}>
+                {bank.capitalAdequacyRatio.toFixed(1)}%
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {bank.capitalAdequacyRatio < 12 ? "Below Basel III minimum (12%)" : "Meets Basel III requirement"}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       {/* ─────────── PRUDENTIAL COMPLIANCE GRID ─────────── */}
       <div className="card-surface rounded-2xl border overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">

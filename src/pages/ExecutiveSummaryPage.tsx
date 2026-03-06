@@ -33,9 +33,15 @@ function calculateCAMELSRatings(): CAMELSRating[] {
     const capital =
       capStatus === "good" ? 5 : capStatus === "caution" ? 3 : 1;
 
-    // Asset Quality: audit opinion + risk rating
+    // Asset Quality: NPL ratio + audit opinion + risk rating
     let assetQuality = 5;
-    if (bank.auditOpinion === "Qualified" || bank.riskRating === "High") {
+    if (bank.nplRatio !== null) {
+      if (bank.nplRatio > 15) assetQuality = 1;
+      else if (bank.nplRatio > 10) assetQuality = 2;
+      else if (bank.nplRatio > 5) assetQuality = 3;
+      else if (bank.nplRatio > 3) assetQuality = 4;
+      else assetQuality = 5;
+    } else if (bank.auditOpinion === "Qualified" || bank.riskRating === "High") {
       assetQuality = 2;
     } else if (
       bank.auditOpinion === "Emphasis of Matter" ||
@@ -202,6 +208,20 @@ export function ExecutiveSummaryPage() {
       unit: "%",
       benchmark: 50,
       status: getMetricStatus(48.5, 50, 70, 80, false),
+    },
+    {
+      metric: "Sector NPL Ratio",
+      value: (() => {
+        const withNPL = banks.filter((b) => b.nplRatio !== null);
+        return withNPL.length > 0 ? parseFloat((withNPL.reduce((s, b) => s + (b.nplRatio ?? 0), 0) / withNPL.length).toFixed(1)) : 0;
+      })(),
+      unit: "%",
+      benchmark: 5,
+      status: (() => {
+        const withNPL = banks.filter((b) => b.nplRatio !== null);
+        const avg = withNPL.length > 0 ? withNPL.reduce((s, b) => s + (b.nplRatio ?? 0), 0) / withNPL.length : 0;
+        return getMetricStatus(avg, 5, 10, 15, false);
+      })(),
     },
   ];
 

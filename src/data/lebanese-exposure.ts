@@ -9,8 +9,8 @@ export const lebaneseExposureData: LebaneseExposureData[] = [
 ];
 
 export const dataGaps: DataGap[] = [
-  { metric: "Capital Adequacy Ratio (CAR)", status: "Missing", description: "Risk-weighted capital ratio not disclosed in published financials", baselReference: "Basel III Pillar 1 - Min 8% (10.5% with buffers)" },
-  { metric: "Non-Performing Loans (NPL) Ratio", status: "Missing", description: "Asset quality breakdown not available in published statements", baselReference: "Basel III Pillar 3 Disclosure" },
+  { metric: "Capital Adequacy Ratio (CAR)", status: "Partial", description: "Risk-weighted capital ratio disclosed by 4 banks (CHB, BSO, NIB, Wataniya). Remaining 14 banks do not disclose.", baselReference: "Basel III Pillar 1 - Min 8% (10.5% with buffers)" },
+  { metric: "Non-Performing Loans (NPL) Ratio", status: "Partial", description: "Extracted from IFRS 9 Stage 3 disclosures for 11 of 18 banks. 7 banks do not disclose sufficient staging data.", baselReference: "Basel III Pillar 3 Disclosure" },
   { metric: "Liquidity Coverage Ratio (LCR)", status: "Missing", description: "High-quality liquid assets vs net cash outflows not disclosed", baselReference: "Basel III LCR >= 100%" },
   { metric: "Net Stable Funding Ratio (NSFR)", status: "Missing", description: "Available stable funding vs required stable funding not disclosed", baselReference: "Basel III NSFR >= 100%" },
   { metric: "Leverage Ratio", status: "Missing", description: "Tier 1 capital vs total exposure not disclosed", baselReference: "Basel III >= 3%" },
